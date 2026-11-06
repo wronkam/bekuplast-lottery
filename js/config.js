@@ -26,6 +26,10 @@ window.LOTTERY_CONFIG = {
   themes: {
     default: { label: { en: 'Classic', pl: 'Klasyczny', de: 'Klassisch' } },
     bekuplast: { label: 'bekuplast', logoUrl: 'themes/bekuplast/logo.png' },
+    'bekuplast-christmas': {
+      label: { en: 'bekuplast Christmas', pl: 'bekuplast świąteczny', de: 'bekuplast Weihnachten' },
+      logoUrl: 'themes/bekuplast/logo.png',
+    },
   },
 
   /* ---------- Data sources (relative to index.html, or absolute URLs) ---------- */
@@ -38,9 +42,9 @@ window.LOTTERY_CONFIG = {
   // 'asc'  -> start with prize #1 (lowest number) and go up
   // 'desc' -> start with the highest number and finish with #1 (grand prize last)
   drawOrder: 'asc',
-  // true  -> after a winner is revealed, ONE button press moves to the next prize AND spins
-  // false -> first press shows the next prize, second press spins
-  spinOnNext: true,
+  // false -> after a winner is revealed, the next press only shows the next prize; another press spins
+  // true  -> one press moves to the next prize AND spins straight away
+  spinOnNext: false,
   // Show the summary automatically this many ms after the last winner (null = wait for button)
   autoSummaryDelayMs: null,
 

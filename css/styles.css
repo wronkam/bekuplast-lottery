@@ -117,6 +117,7 @@ select option { background: var(--dialog-bg); color: var(--text); }
   font-size: 0.85em;
   color: var(--muted);
 }
+.lang-switch span:not(.active):hover { color: var(--text); }
 .lang-switch span.active { background: var(--accent); color: var(--accent-contrast); }
 
 /* Small uppercase label ("1st prize", "Prizes") */

@@ -42,6 +42,8 @@
   --wheel-radius: 6;
   --palette: #78b146, #2f4f9e, #8a8a8a, #a63a32, #5f9233, #4a6fc4, #424242, #9cc977;
   /* pie with many names: green -> blue -> green sweep */
+  --wheel-many: sweep;
+  --wheel-blocks: 12;
   --wheel-hue-start: 95;
   --wheel-hue-span: 130;
   --wheel-hue-mirror: 1;

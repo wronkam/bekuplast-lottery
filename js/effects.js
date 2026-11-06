@@ -150,6 +150,8 @@
       this.hueStart = num('--wheel-hue-start', 0);
       this.hueSpan = num('--wheel-hue-span', 360);
       this.hueMirror = num('--wheel-hue-mirror', 0) === 1;
+      this.manyMode = v('--wheel-many') || 'sweep';   // 'sweep' | 'blocks'
+      this.blocks = num('--wheel-blocks', 12);
       this.sat = v('--wheel-sat') || '70%';
       this.light = v('--wheel-light') || '55%';
       this.lightAlt = v('--wheel-light-alt') || this.light;

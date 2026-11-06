@@ -227,7 +227,7 @@
     if (spinningPrizeId) btn.textContent = T.spinning;
     else if (!res) btn.textContent = T.spin;
     else if (isLast()) btn.textContent = T.showSummary;
-    else btn.textContent = cfg.spinOnNext ? T.next : T.showNext;
+    else btn.textContent = T.next;
     btn.disabled = busy;
 
     document.body.dataset.wheel = prefs.style;
@@ -404,7 +404,7 @@
     L.i18n.applyStatic();
     document.title = T.title;
     $('btn-lang').innerHTML = langs
-      .map((l) => `<span class="${l === code ? 'active' : ''}">${l.toUpperCase()}</span>`).join('');
+      .map((l) => `<span data-lang="${l}" class="${l === code ? 'active' : ''}" title="${window.LOTTERY_I18N[l].languageName || l}">${l.toUpperCase()}</span>`).join('');
     $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${t('style_' + s)}</option>`).join('');
     $('opt-style').value = prefs.style;
     const current = document.documentElement.dataset.theme;
@@ -419,12 +419,15 @@
       if (loadFailure) $('load-error').textContent = loadFailureText();
     }
   }
-  function nextLanguage() {
-    const langs = L.i18n.languages();
-    prefs.lang = langs[(langs.indexOf(L.i18n.lang) + 1) % langs.length];
+  function setLanguage(code) {
+    prefs.lang = code;
     L.store.savePrefs(prefs);
     dropUrlParam('lang');
-    applyLanguage(prefs.lang);
+    applyLanguage(code);
+  }
+  function nextLanguage() {
+    const langs = L.i18n.languages();
+    setLanguage(langs[(langs.indexOf(L.i18n.lang) + 1) % langs.length]);
   }
   function dropUrlParam(name) {
     const url = new URL(location.href);
@@ -472,7 +475,11 @@
       applyTheme(prefs.theme);
       e.target.blur(); // so Space/Enter go back to driving the lottery
     });
-    $('btn-lang').addEventListener('click', nextLanguage);
+    // Click a language code to pick it directly (clicking the button's padding cycles).
+    $('btn-lang').addEventListener('click', (e) => {
+      const pick = e.target.closest('[data-lang]');
+      if (pick) setLanguage(pick.dataset.lang); else nextLanguage();
+    });
     $('opt-style').addEventListener('change', (e) => {
       prefs.style = e.target.value;
       L.store.savePrefs(prefs);

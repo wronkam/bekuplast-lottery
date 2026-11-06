@@ -62,7 +62,10 @@
   --wheel-rim: #1f2633;             /* pie: outer ring */
   --wheel-hub: #1f2633;             /* pie: centre */
   --palette: #3366cc, #f2a541, #2bb3a3, #8e5cd9, #e05d5d, #5aa9e6, #1f2633, #9fb7e8; /* slices (few names) & confetti */
-  /* pie with many names: hue sweep  hsl(start + span * t, sat, light/light-alt) */
+  /* pie with many names: 'sweep' = smooth hue sweep below, 'blocks' = --wheel-blocks sectors in --palette colours */
+  --wheel-many: sweep;
+  --wheel-blocks: 12;
+  /* hue sweep  hsl(start + span * t, sat, light/light-alt) */
   --wheel-hue-start: 200;
   --wheel-hue-span: 80;
   --wheel-hue-mirror: 1;            /* 1 = go there and back (seamless), 0 = straight sweep */

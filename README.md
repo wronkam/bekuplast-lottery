@@ -14,11 +14,11 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 
 1. Open the page. It shows the first prize to draw; by default that is **prize #1**. To go **last to first** (finish with the grand prize), choose it under ⚙ → *Draw order*, or set `drawOrder` in the [configuration](#configuration).
 2. Press **Spin!** (or <kbd>Space</kbd>, <kbd>Enter</kbd>, <kbd>→</kbd>, or a presentation clicker's *next* key). The wheel spins and stops on a random participant, and the name flies under the prize.
-3. Press **Next prize ➜** to draw the next prize. Previous winners are removed from the wheel.
+3. Press **Next prize ➜** to show the next prize, then press **Spin!** again to draw it. Each prize gets its own moment before the spin. Previous winners are removed from the wheel.
 4. After the last prize, press **Show results 🏆** to see the summary of all prizes and winners. From there you can **Download CSV**, **Print**, go back, or reset.
 5. **Reset** (top right, or on the summary) clears all results after you confirm.
 
-The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN / PL / DE** button to switch the language (English, Polish, German). Both choices are remembered in this browser, and switching never affects the draw in progress.
+The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN | PL | DE** switch to change the language (English, Polish, German): click a code to pick it. Both choices are remembered in this browser, and switching never affects the draw in progress.
 
 | Key | Action |
 | --- | --- |
@@ -92,7 +92,7 @@ Almost everything is in **`js/config.js`**:
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
 | `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
 | `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |
-| `spinOnNext` | `true`: one press moves to the next prize and spins. `false`: first press shows the prize, second press spins. |
+| `spinOnNext` | `false` (default): after a winner, one press shows the next prize and another press spins. `true`: one press moves to the next prize and spins immediately. |
 | `autoSummaryDelayMs` | Show the summary automatically after the last draw (`null` = wait for the button) |
 | `wheel.style` | `'drum'` (vertical reel, readable with hundreds of names) or `'pie'` (classic wheel). Also switchable in Settings. |
 | `wheel.durationMs`, `durationJitterMs`, `easingPower` | Spin length and how long the suspenseful slow-down lasts |
@@ -102,7 +102,7 @@ Almost everything is in **`js/config.js`**:
 
 All UI texts, including the title, are in **`js/i18n.js`**, with one dictionary per language (`en`, `pl`, `de`). Change any text there. Texts with numbers in them (such as `1st prize` / `1. nagroda` or `Prize 1 of 8`) are small functions.
 
-- Switch with the **EN / PL / DE** button in the top bar or the <kbd>L</kbd> key. The choice is remembered.
+- Click **EN**, **PL** or **DE** in the top bar, or press <kbd>L</kbd> to cycle through them. The choice is remembered.
 - `?lang=pl` or `?lang=de` in the URL opens the page in Polish or German.
 - `language` in `js/config.js` sets the default.
 
@@ -118,6 +118,7 @@ Pick the look from the **Style** drop-down in the top bar. Built-in themes:
 | --- | --- |
 | `default` (*Classic*) | Dark navy with gold accents, pill buttons and a rainbow pie wheel |
 | `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the Manrope font, bordered uppercase labels and the company logo |
+| `bekuplast-christmas` | Festive bekuplast: pine-green background with falling snow, Christmas red with gold and bekuplast green, a candy-cane stripe, ❄ labels and a red/green/gold wheel. Open it directly with `?theme=bekuplast-christmas`. |
 
 The choice is remembered in this browser. `?theme=bekuplast` in the URL opens a specific theme, e.g. https://wronkam.github.io/bekuplast-lottery/?theme=bekuplast. `theme` in `js/config.js` sets the default for everyone.
 
@@ -131,6 +132,7 @@ themes/
   default/theme.css
   bekuplast/theme.css
   bekuplast/logo.png      ← a theme's own assets live in its folder
+  bekuplast-christmas/theme.css   (reuses the bekuplast logo)
 ```
 
 - **`themes/<name>/theme.css` has three sections in a fixed order:**
@@ -139,7 +141,7 @@ themes/
   3. **Overrides:** optional CSS rules for any component (`.tag`, `.winner-slot`, `.results-list li`, …), written as plain selectors.
 - **Only the active theme's stylesheet is loaded.** Switching swaps it without a reload.
 - **The shared layout (`css/styles.css`) sits in a lower CSS cascade layer.** Any rule in a theme file therefore wins without special selectors or `!important`.
-- **The wheel canvas reads the same variables** (`--wheel-*`, `--palette`), so it follows the theme.
+- **The wheel canvas reads the same variables** (`--wheel-*`, `--palette`), so it follows the theme. With many names the classic wheel uses either a smooth colour sweep (`--wheel-many: sweep`) or bold sectors in the palette colours (`--wheel-many: blocks`, as in the Christmas theme).
 
 #### Adding a theme
 

@@ -57,7 +57,8 @@
       if (this.style === 'pie') end += (Math.random() - 0.5) * 0.6; // land anywhere inside the segment
       const windUp = o.windUpMs;
       const back = windUp ? 0.6 : 0;
-      const dur = o.durationMs + (Math.random() * 2 - 1) * o.durationJitterMs;
+      // never shorter than 0.5 s, even if the jitter is configured larger than the duration
+      const dur = Math.max(500, o.durationMs + (Math.random() * 2 - 1) * o.durationJitterMs);
       const pow = o.easingPower;
       this.spinning = true;
       this.highlight = 0;
@@ -213,11 +214,15 @@
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, R, (i - 0.5) * seg, (i + 0.5) * seg);
         ctx.closePath();
-        // few names: cycle the theme palette; many names: a smooth hue sweep (--wheel-hue-* variables)
+        // few names: cycle the theme palette; many names: --wheel-many decides
+        //   'sweep'  – a smooth hue sweep (--wheel-hue-* variables)
+        //   'blocks' – --wheel-blocks wide sectors in the palette colours
         const t = th.hueMirror ? (1 - Math.cos((TAU * i) / n)) / 2 : i / n;
         const color = n <= pal.length * 3 && n % pal.length !== 1
           ? pal[i % pal.length]
-          : `hsl(${th.hueStart + th.hueSpan * t}, ${th.sat}, ${i % 2 ? th.lightAlt : th.light})`;
+          : th.manyMode === 'blocks'
+            ? pal[Math.floor((i / n) * th.blocks) % pal.length]
+            : `hsl(${th.hueStart + th.hueSpan * t}, ${th.sat}, ${i % 2 ? th.lightAlt : th.light})`;
         ctx.fillStyle = color;
         ctx.fill();
         if (!this.spinning && this.highlight && i === winner) {

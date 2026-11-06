@@ -94,7 +94,9 @@ Almost everything is in **`js/config.js`**:
 | `sound`, `confetti`, `flyAnimationMs` | Effects |
 | `text.*` | Every UI text, including the rank label (`1st prize`). Translate here. |
 
-**Look & feel:** colours, fonts and column widths are CSS variables at the top of **`css/styles.css`** (`:root`). The wheel canvas reads the same variables, so a theme change applies everywhere.
+**Look & feel:** the theme follows the [bekuplast.pl](https://www.bekuplast.pl/) style: a light grey background, white cards, brand green `#78b146`, the Manrope font, and uppercase "tag" labels. All colours, fonts and column widths are CSS variables at the top of **`css/styles.css`** (`:root`). The wheel canvas reads the same variables, so a theme change applies everywhere.
+
+**Logo:** `images/logo.png` was cut from a screenshot of the website. For a sharper result, replace it with the official logo file (PNG or SVG) and update `logoUrl` in `js/config.js` if the file name changes.
 
 **Adding a wheel style:** add a renderer function to `RENDERERS` in `js/wheel.js`. It receives the canvas context and draws `this.items` at position `this.p`. It then appears in the Settings drop-down automatically.
 

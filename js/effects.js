@@ -142,9 +142,11 @@
       this.palette = v('--palette').split(',').map((s) => s.trim()).filter(Boolean);
       this.text = v('--text');
       this.accent = v('--accent');
-      this.accent2 = v('--accent-2');
       this.wheelBg = v('--wheel-bg');
       this.wheelBg2 = v('--wheel-bg-2');
+      this.wheelRim = v('--wheel-rim') || this.text;
+      this.wheelShade = v('--wheel-shade') || 'rgba(0,0,0,0.5)';
+      this.radius = parseFloat(v('--wheel-radius')) || 0;
       this.font = v('--font');
     },
   };

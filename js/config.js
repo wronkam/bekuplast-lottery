@@ -7,9 +7,9 @@
  */
 window.LOTTERY_CONFIG = {
   /* ---------- Branding ---------- */
-  title: 'Bekuplast Lottery',
+  title: 'Prize Lottery',
   subtitle: 'Prize draw',
-  logoUrl: null, // e.g. 'images/logo.png' – shown next to the title when set
+  logoUrl: 'images/logo.png', // shown next to the title and on the summary (null = no logo)
 
   /* ---------- Data sources (relative to index.html, or absolute URLs) ---------- */
   data: {
@@ -81,6 +81,7 @@ window.LOTTERY_CONFIG = {
     noWinner: 'No eligible participants left',
     pending: '?',
     prizesHeading: 'Prizes',
+    summaryTag: 'Prize draw',
     summaryTitle: 'Results',
     rank: (n) => {
       const s = ['th', 'st', 'nd', 'rd'];

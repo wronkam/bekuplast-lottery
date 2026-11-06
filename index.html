@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prize Lottery</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -31,7 +34,7 @@
     <main class="stage">
       <section class="panel prize-panel" aria-live="polite">
         <div class="prize-card" id="prize-card">
-          <div class="prize-rank" id="prize-rank"></div>
+          <div class="prize-rank tag" id="prize-rank"></div>
           <div class="prize-image"><img id="prize-image" alt=""></div>
           <h2 class="prize-name" id="prize-name"></h2>
           <p class="prize-desc" id="prize-desc"></p>
@@ -50,7 +53,7 @@
       </section>
 
       <aside class="panel results-panel">
-        <h3 data-text="prizesHeading"></h3>
+        <h3 class="tag" data-text="prizesHeading"></h3>
         <ol class="results-list" id="results-list"></ol>
       </aside>
     </main>
@@ -59,6 +62,8 @@
   <!-- ============ Summary ============ -->
   <section class="summary" id="summary" hidden>
     <div class="summary-inner">
+      <img class="summary-logo" id="summary-logo" alt="" hidden>
+      <span class="tag" data-text="summaryTag"></span>
       <h2 data-text="summaryTitle"></h2>
       <div class="summary-grid" id="summary-grid"></div>
       <div class="summary-actions">

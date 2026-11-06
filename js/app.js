@@ -426,7 +426,9 @@
     document.title = cfg.title;
     $('title').textContent = cfg.title;
     $('subtitle').textContent = cfg.subtitle || '';
-    if (cfg.logoUrl) { $('logo').src = cfg.logoUrl; $('logo').hidden = false; }
+    if (cfg.logoUrl) {
+      ['logo', 'summary-logo'].forEach((id) => { $(id).src = cfg.logoUrl; $(id).hidden = false; });
+    }
     document.querySelectorAll('[data-text]').forEach((el) => { el.textContent = T[el.dataset.text]; });
     $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${s}</option>`).join('');
 

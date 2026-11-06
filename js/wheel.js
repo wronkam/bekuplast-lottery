@@ -133,7 +133,7 @@
       body.addColorStop(0.5, th.wheelBg2);
       body.addColorStop(1, th.wheelBg);
       ctx.fillStyle = body;
-      roundRect(ctx, 0, 0, w, h, 18);
+      roundRect(ctx, 0, 0, w, h, th.radius);
       ctx.fill();
 
       // centre band
@@ -171,12 +171,12 @@
 
       // top / bottom shading for depth
       const shade = ctx.createLinearGradient(0, 0, 0, h);
-      shade.addColorStop(0, 'rgba(0,0,0,0.55)');
-      shade.addColorStop(0.25, 'rgba(0,0,0,0)');
-      shade.addColorStop(0.75, 'rgba(0,0,0,0)');
-      shade.addColorStop(1, 'rgba(0,0,0,0.55)');
+      shade.addColorStop(0, th.wheelShade);
+      shade.addColorStop(0.28, 'rgba(255,255,255,0)');
+      shade.addColorStop(0.72, 'rgba(255,255,255,0)');
+      shade.addColorStop(1, th.wheelShade);
       ctx.fillStyle = shade;
-      roundRect(ctx, 0, 0, w, h, 18);
+      roundRect(ctx, 0, 0, w, h, th.radius);
       ctx.fill();
 
       // pointers
@@ -201,7 +201,7 @@
       // rim
       ctx.beginPath();
       ctx.arc(0, 0, R + 14, 0, TAU);
-      ctx.fillStyle = th.wheelBg2;
+      ctx.fillStyle = th.wheelRim;
       ctx.fill();
 
       ctx.rotate(-Math.PI / 2 - this.p * seg);
@@ -213,7 +213,10 @@
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, R, (i - 0.5) * seg, (i + 0.5) * seg);
         ctx.closePath();
-        let color = n <= pal.length * 3 && n % pal.length !== 1 ? pal[i % pal.length] : `hsl(${(i / n) * 360}, 72%, 55%)`;
+        // few names: cycle the brand palette; many names: smooth green -> blue -> green sweep
+        const color = n <= pal.length * 3 && n % pal.length !== 1
+          ? pal[i % pal.length]
+          : `hsl(${95 + 65 * (1 - Math.cos((TAU * i) / n))}, 42%, ${i % 2 ? 46 : 52}%)`;
         ctx.fillStyle = color;
         ctx.fill();
         if (!this.spinning && this.highlight && i === winner) {
@@ -250,7 +253,7 @@
       // hub
       ctx.beginPath();
       ctx.arc(cx, cy, Math.max(18, R * 0.12), 0, TAU);
-      ctx.fillStyle = th.wheelBg;
+      ctx.fillStyle = th.wheelRim;
       ctx.fill();
       ctx.lineWidth = 4;
       ctx.strokeStyle = th.accent;

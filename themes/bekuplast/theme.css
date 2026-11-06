@@ -74,17 +74,9 @@
 }
 .tag::after { content: ""; width: 4px; height: 4px; background: currentColor; }
 
-/* prize card: left aligned, image on grey with a green corner block */
+/* prize card: left aligned, image on a grey panel */
 .prize-card { align-items: flex-start; text-align: left; }
 .prize-image { background: var(--page-bg); }
-.prize-image::before {
-  content: "";
-  position: absolute;
-  left: -10px; top: -10px;
-  width: 22%; aspect-ratio: 1;
-  max-width: 90px;
-  background: var(--brand);
-}
 .prize-image img { max-width: calc(100% - 24px); max-height: calc(100% - 24px); }
 
 /* winner slot */

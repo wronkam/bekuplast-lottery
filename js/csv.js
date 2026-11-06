@@ -89,7 +89,8 @@
   }
 
   /**
-   * Prizes file: columns rank, name, image (+ optional description).
+   * Prizes file: columns rank, name, image (+ optional secondary_name: the name in a second language,
+   * shown under the main name, e.g. Polish name + German translation).
    * Header recommended; without a recognised header columns are read in that order.
    */
   function parsePrizes(text, cfg) {
@@ -99,9 +100,9 @@
     const aliases = cfg.csv.prizeColumns;
     const header = rows[0].map(norm);
     const find = (key) => header.findIndex((h) => aliases[key].map(norm).includes(h));
-    let idx = { rank: find('rank'), name: find('name'), image: find('image'), description: find('description') };
+    let idx = { rank: find('rank'), name: find('name'), image: find('image'), secondary: find('secondary') };
     if (idx.name >= 0 || idx.rank >= 0) rows.shift();
-    else idx = { rank: 0, name: 1, image: 2, description: 3 };
+    else idx = { rank: 0, name: 1, image: 2, secondary: 3 };
 
     const prizes = rows.map((r, i) => {
       const rawRank = idx.rank >= 0 ? r[idx.rank] : '';
@@ -115,7 +116,7 @@
         rank,
         name: (idx.name >= 0 ? r[idx.name] : '') || t('defaultPrizeName', rank),
         image: idx.image >= 0 ? r[idx.image] || '' : '',
-        description: idx.description >= 0 ? r[idx.description] || '' : '',
+        secondary: idx.secondary >= 0 ? r[idx.secondary] || '' : '',
       };
     });
     if (!prizes.length) throw new Error(t('noPrizes'));

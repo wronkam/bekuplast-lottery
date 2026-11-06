@@ -12,7 +12,7 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 
 ### Running the draw
 
-1. Open the page. It shows the first prize to draw; by default that is **prize #1**. To go **last to first** (finish with the grand prize), choose it under ⚙ → *Draw order*, or set `drawOrder` in the [configuration](#configuration).
+1. Open the page. It shows a **start screen** (a welcome image with the number of prizes and participants). Press **Start ➜** to show the first prize; by default that is **prize #1**. To go **last to first** (finish with the grand prize), choose it under ⚙ → *Draw order*, or set `drawOrder` in the [configuration](#configuration).
 2. Press **Spin!** (or <kbd>Space</kbd>, <kbd>Enter</kbd>, <kbd>→</kbd>, or a presentation clicker's *next* key). The wheel spins and stops on a random participant, and the name flies under the prize.
 3. Press **Next prize ➜** to show the next prize, then press **Spin!** again to draw it. Each prize gets its own moment before the spin. Previous winners are removed from the wheel.
 4. After the last prize, press **Show results 🏆** to see the summary of all prizes and winners. From there you can **Download CSV**, **Print**, go back, or reset.
@@ -20,12 +20,16 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 
 The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN | PL | DE** switch to change the language (English, Polish, German): click a code to pick it. Both choices are remembered in this browser, and switching never affects the draw in progress. If the top bar gets too crowded (a narrow screen or longer German labels), the **Style** drop-down moves into **⚙ → Options** automatically and comes back when there is room.
 
+- **Hide the top bar** with the **▴** button (or <kbd>H</kbd>) for a cleaner projector view. A faint **▾** in the top-right corner brings it back.
+- **The prize list** (all prizes with their winners, on the right) is hidden by default. Turn it on under **⚙ → Options → Show prize list**.
+
 | Key | Action |
 | --- | --- |
 | <kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>→</kbd> / <kbd>PageDown</kbd> | Main button (spin / next / results) |
 | <kbd>F</kbd> | Toggle fullscreen |
 | <kbd>M</kbd> | Toggle sound |
 | <kbd>L</kbd> | Switch language (EN → PL → DE) |
+| <kbd>H</kbd> | Hide / show the top bar |
 | <kbd>Esc</kbd> | Close the summary |
 
 **Progress is saved in the browser** (localStorage). If the page is refreshed by accident, the draw continues where it stopped. The winner is chosen and saved the moment the spin starts, so refreshing during a spin cannot change the result. Use **Reset** to start over.
@@ -67,18 +71,32 @@ imię;nazwisko;email
 Jan;Kowalski;jan@example.com
 ```
 
-**prizes.csv**: `rank` (1 = best prize), `name`, `image`, and an optional `description`:
+**prizes.csv**: `rank` (1 = best prize), `name`, an optional `secondary_name`, and `image`. `secondary_name` is the prize name in a second language, shown smaller under the main name on the stage and on the summary. A typical file has the Polish name first and the German translation second:
 
 ```csv
-rank,name,image,description
-1,Weekend in the mountains,images/prizes/mountains.svg,2 nights with breakfast
-2,"55"" 4K TV",images/prizes/tv.svg,
-3,Electric bike,https://example.com/bike.jpg,
+rank,name,secondary_name,image
+1,Weekend dla dwojga w Zakopanem,Wochenende für zwei in Zakopane,images/prizes/mountains.svg
+2,"Telewizor 4K 55""","4K-Fernseher 55""",images/prizes/tv.svg
+3,Rower elektryczny,E-Bike,https://example.com/bike.jpg
 ```
 
-`image` can be a path relative to `index.html`, a full URL, or just a file name that you upload in Settings. A missing image shows a 🎁 placeholder. Polish header names work too (`miejsce`, `nagroda`, `obraz`, `opis`); see `csv.prizeColumns` in `js/config.js`.
+Leave `secondary_name` empty, or drop the column, to show only one name. Older files with a `description` column still work: it is shown in the same place.
+
+`image` can be a path relative to `index.html`, a full URL, or just a file name that you upload in Settings. A missing image shows a 🎁 placeholder. Polish and German header names work too (`miejsce`/`platz`, `nagroda`/`preis`, `obraz`/`bild`, `name_de`, `tłumaczenie`, `übersetzung`); see `csv.prizeColumns` in `js/config.js`.
 
 The app is sized for a few hundred names and roughly 3–12 prizes, though it is not limited to that.
+
+---
+
+### Font
+
+The bekuplast themes use a font bundled in the repository, so the page needs no internet: **`fonts/brand-font.woff2`** (currently Manrope, under the SIL Open Font License).
+
+**To use a different font, replace the file:**
+- **A WOFF2 file:** save it as `fonts/brand-font.woff2`.
+- **A TTF or OTF file:** delete `brand-font.woff2` and add your file as `fonts/brand-font.ttf` or `.otf`.
+
+Nothing else needs to change. See [fonts/README.md](fonts/README.md).
 
 ---
 
@@ -89,6 +107,8 @@ Almost everything is in **`js/config.js`**:
 | Option | What it does |
 | --- | --- |
 | `logoUrl` | Logo in the top bar and on the summary (a theme can set its own) |
+| `startImage` | Image on the start screen before the first prize (`null` = no start screen). A theme can set its own; the Christmas theme does |
+| `showPrizeList` | Show the prize list with winners by default (`false`; also a switch in Settings) |
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
 | `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
 | `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |
@@ -108,7 +128,7 @@ All UI texts, including the title, are in **`js/i18n.js`**, with one dictionary 
 
 To add a language, copy the `en` block in `js/i18n.js`, give it a new code (e.g. `cs`) and translate it. The button then includes it automatically. Missing keys fall back to English.
 
-Prize names and descriptions come from your CSV, so they appear as written there.
+Prize names (and their second-language versions) come from your CSV, so they appear as written there.
 
 ### Themes
 
@@ -117,7 +137,7 @@ Pick the look from the **Style** drop-down in the top bar. Built-in themes:
 | Theme | Look |
 | --- | --- |
 | `default` (*Classic*) | Dark navy with gold accents, pill buttons and a rainbow pie wheel |
-| `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the Manrope font, bordered uppercase labels and the company logo |
+| `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the brand font (Manrope, bundled), bordered uppercase labels and the company logo |
 | `bekuplast-christmas` | Festive bekuplast: rich Christmas-red panels with gold trim, a gold Spin button and gold highlights, falling snow, a gold/red/green garland under the top bar, ❄ labels, and a red/gold/green wheel. Open it directly with `?theme=bekuplast-christmas`. |
 
 The choice is remembered in this browser. `?theme=bekuplast` in the URL opens a specific theme, e.g. https://wronkam.github.io/bekuplast-lottery/?theme=bekuplast. `theme` in `js/config.js` sets the default for everyone.
@@ -136,7 +156,7 @@ themes/
 ```
 
 - **`themes/<name>/theme.css` has three sections in a fixed order:**
-  1. **Fonts:** an optional `@import`, e.g. from Google Fonts. Only the active theme's font is downloaded.
+  1. **Fonts:** optional. Use the bundled brand font (`--font: "Brand Font", …`), or add a font file to the theme folder with `@font-face`. Web fonts via `@import` also work but need internet.
   2. **Variables:** the full list of CSS variables on `:root` (colours, font, corner radius, button style, wheel colours). Fill in all of them. They drive the whole layout and the wheel canvas.
   3. **Overrides:** optional CSS rules for any component (`.tag`, `.winner-slot`, `.results-list li`, …), written as plain selectors.
 - **Only the active theme's stylesheet is loaded.** Switching swaps it without a reload.
@@ -174,6 +194,7 @@ js/storage.js         saved progress (localStorage) and uploaded files (IndexedD
 js/effects.js         fair RNG, sound (WebAudio), confetti, flying-name animation, theme colours
 js/wheel.js           the wheel (drum & pie renderers, spin physics)
 js/app.js             lottery flow / state machine and UI rendering
+fonts/                bundled brand font (brand-font.woff2 = Manrope) + license; see fonts/README.md
 tests/smoke.js        end-to-end smoke test: `node tests/smoke.js` (needs Playwright)
 AGENTS.md             technical guide for developers / AI agents (architecture, theme standard, testing)
 data/                 demo names.csv & prizes.csv

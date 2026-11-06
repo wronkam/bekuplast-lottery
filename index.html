@@ -38,8 +38,11 @@
         <button class="icon-btn" id="btn-fullscreen" data-i18n-title="fullscreenTip">⛶</button>
         <button class="icon-btn" id="btn-settings" data-i18n-title="settingsTip">⚙</button>
         <button class="btn btn-ghost" id="btn-reset" data-i18n="reset" data-i18n-title="resetTip"></button>
+        <button class="icon-btn" id="btn-hide-topbar" data-i18n-title="hideMenuTip">▴</button>
       </nav>
     </header>
+    <!-- shown only while the top bar is hidden -->
+    <button class="icon-btn topbar-reveal" id="btn-show-topbar" data-i18n-title="showMenuTip">▾</button>
 
     <!-- ============ Stage ============ -->
     <main class="stage">
@@ -138,6 +141,7 @@
             <option value="desc" data-i18n="orderDesc"></option>
           </select>
         </label>
+        <label class="row"><input type="checkbox" id="opt-list"> <span data-i18n="showPrizeList"></span></label>
         <label class="row"><input type="checkbox" id="opt-sound"> <span data-i18n="sound"></span></label>
         <p class="muted" id="order-hint" data-i18n="orderResetHint" hidden></p>
       </fieldset>

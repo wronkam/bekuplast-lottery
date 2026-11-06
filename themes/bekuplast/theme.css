@@ -1,11 +1,11 @@
 /* =====================================================================
  *  THEME: bekuplast – matches www.bekuplast.pl
- *  light grey + white, brand green, Manrope, bordered uppercase tags
+ *  light grey + white, brand green, brand font (Manrope), bordered uppercase tags
  *  Structure: see themes/_template/theme.css
  * ===================================================================== */
 
 /* ---------- 1. Fonts ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+/* bundled locally: fonts/brand-font.woff2 (Manrope) – see fonts/README.md; no internet needed */
 
 /* ---------- 2. Variables ---------- */
 :root {
@@ -21,7 +21,7 @@
   --accent-contrast: #ffffff;
   --accent-soft: #eef5e7;
   --danger: #c0392b;
-  --font: "Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font: "Brand Font", "Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --heading-tracking: -0.02em;
   --radius: 6px;
   --btn-radius: 6px;
@@ -103,8 +103,7 @@ body[data-wheel="drum"] .wheel-wrap { border: 1px solid var(--border); border-ra
 .results-list li.current { border-left-color: var(--brand); }
 
 /* summary */
-.summary-card { text-align: left; }
-.summary-card.first { border-color: var(--brand); border-top-width: 6px; }
+.summary-card { text-align: left; border-color: var(--brand); border-top-width: 6px; }
 .s-img { background: var(--page-bg); }
 .s-img img { max-width: calc(100% - 16px); max-height: calc(100% - 16px); border-radius: 4px; }
 .s-prize { color: var(--muted); }

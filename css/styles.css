@@ -6,6 +6,18 @@
  *  theme file overrides it regardless of selector specificity.
  *  The wheel canvas reads the --wheel-* variables (see js/effects.js -> L.theme).
  * ===================================================================== */
+/* Bundled brand font (fonts/README.md). Drop-in replacement: swap fonts/brand-font.woff2,
+   or delete it and add brand-font.ttf / brand-font.otf. Themes use it via --font: "Brand Font", … */
+@font-face {
+  font-family: "Brand Font";
+  src: url("../fonts/brand-font.woff2") format("woff2"),
+       url("../fonts/brand-font.ttf") format("truetype"),
+       url("../fonts/brand-font.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
 
 :root {
@@ -119,6 +131,26 @@ select option { background: var(--dialog-bg); color: var(--text); }
 }
 .lang-switch span:not(.active):hover { color: var(--text); }
 .lang-switch span.active { background: var(--accent); color: var(--accent-contrast); }
+
+/* Hidden top bar (button ▴ / key H): only a small ▾ button in the corner brings it back */
+.topbar-reveal { display: none; }
+.topbar-hidden .topbar { display: none; }
+.topbar-hidden .topbar-reveal {
+  display: grid;
+  position: fixed;
+  top: 8px; right: 8px;
+  z-index: 30;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+.topbar-hidden .topbar-reveal:hover, .topbar-hidden .topbar-reveal:focus-visible { opacity: 1; }
+.topbar-hidden .stage { padding-top: var(--gap); }
+
+/* Prize list switched off in Settings (default): the stage uses two columns */
+body.hide-list .results-panel { display: none; }
+
+/* Start screen (before the first prize): no winner box */
+body.intro .winner-slot { display: none; }
 
 /* Not enough room in the top bar -> the Style drop-down moves to Settings -> Options (see fitToolbar in js/app.js) */
 .dialog label.row.settings-theme-row { display: none; }
@@ -315,7 +347,7 @@ body[data-wheel="pie"] .readout { display: block; }
 }
 .summary-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--accent);   /* every prize gets the accent border */
   border-radius: var(--radius);
   padding: 16px;
   text-align: center;
@@ -328,6 +360,8 @@ body[data-wheel="pie"] .readout { display: block; }
 .s-img.no-image::after { font-size: 4rem; }
 .s-rank { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.78rem; }
 .s-prize { font-weight: 600; }
+.s-secondary { color: var(--muted); font-size: 0.9em; margin-top: -4px; }
+.s-secondary:empty { display: none; }
 .s-winner { font-size: 1.45rem; font-weight: 800; color: var(--accent-strong); letter-spacing: var(--heading-tracking); }
 .summary-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
 
@@ -364,6 +398,9 @@ body[data-wheel="pie"] .readout { display: block; }
 .is-spinning .toolbar > * { pointer-events: none; opacity: 0.5; }
 
 /* ---------- Responsive ---------- */
+@media (min-width: 1101px) {
+  body.hide-list .stage { grid-template-columns: var(--side-col) var(--wheel-col); }
+}
 @media (max-width: 1100px) {
   body { overflow: auto; }
   .app { height: auto; min-height: 100vh; }

@@ -9,7 +9,10 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   const prefs = Object.assign(
-    { style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language },
+    {
+      style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language,
+      showList: !!cfg.showPrizeList, topbarHidden: false,
+    },
     L.store.loadPrefs(),
   );
 
@@ -78,7 +81,8 @@
       .map((p, i) => ({ p, i }))
       .sort((a, b) => dir * (a.p.rank - b.p.rank) || a.i - b.i)
       .map((x) => x.p.id);
-    state = { key: data.key, order, current: 0, results: {}, showSummary: false };
+    // current = -1 is the start screen (only when a start image is configured)
+    state = { key: data.key, order, current: startImageUrl() ? -1 : 0, results: {}, showSummary: false };
     save();
   }
   function restoreOrCreateState() {
@@ -87,7 +91,13 @@
     else createState();
   }
   const save = () => L.store.saveState(state);
-  const currentPrize = () => data.byId[state.order[state.current]];
+  const inIntro = () => state.current < 0;
+  const currentPrize = () => (inIntro() ? null : data.byId[state.order[state.current]]);
+  /** Start-screen image of the active theme (theme.startImage, else config.startImage). */
+  function startImageUrl() {
+    const th = cfg.themes[document.documentElement.dataset.theme] || {};
+    return ('startImage' in th ? th.startImage : cfg.startImage) || '';
+  }
   const resultOf = (id) => (id === spinningPrizeId ? undefined : state.results[id]);
   const isLast = () => state.current >= state.order.length - 1;
   const anyResults = () => Object.keys(state.results).length > 0;
@@ -100,7 +110,7 @@
    * Wheel preparation & drawing
    * ===================================================================== */
   function prepareWheel() {
-    const res = state.results[currentPrize().id];
+    const res = inIntro() ? null : state.results[currentPrize().id];
     let pool = eligible();
     if (res && res.nameIndex != null) pool.push(res.nameIndex); // keep the winner visible after a reload
     pool = L.fx.shuffle(pool);
@@ -113,7 +123,7 @@
   }
 
   async function spin() {
-    if (busy) return;
+    if (busy || inIntro()) return;
     const prize = currentPrize();
     if (state.results[prize.id]) return;
     if (!wheelPool.length) {
@@ -161,9 +171,11 @@
 
   function mainAction() {
     if (busy || !data) return;
-    if (!state.results[currentPrize().id]) return spin();
-    if (isLast()) return openSummary();
-    state.current++;
+    if (!inIntro()) {
+      if (!state.results[currentPrize().id]) return spin();
+      if (isLast()) return openSummary();
+    }
+    state.current++; // from the start screen this moves to the first prize, like any "next prize"
     save();
     prepareWheel();
     render(true);
@@ -182,14 +194,23 @@
   }
 
   function render(animatePrize) {
+    const intro = inIntro();
     const prize = currentPrize();
-    const res = resultOf(prize.id);
+    const res = prize ? resultOf(prize.id) : undefined;
+    document.body.classList.toggle('intro', intro);
 
-    // prize card
-    $('prize-rank').textContent = T.rank(prize.rank);
-    $('prize-name').textContent = prize.name;
-    $('prize-desc').textContent = prize.description;
-    setImage($('prize-image'), prize.imageUrl);
+    // prize card (or the start screen)
+    if (intro) {
+      $('prize-rank').textContent = T.summaryTag;
+      $('prize-name').textContent = T.introTitle;
+      $('prize-desc').textContent = T.introHint(data.prizes.length, data.names.length);
+      setImage($('prize-image'), startImageUrl());
+    } else {
+      $('prize-rank').textContent = T.rank(prize.rank);
+      $('prize-name').textContent = prize.name;
+      $('prize-desc').textContent = prize.secondary; // name in the second language
+      setImage($('prize-image'), prize.imageUrl);
+    }
     if (animatePrize) {
       const card = $('prize-card');
       card.classList.remove('enter'); void card.offsetWidth; card.classList.add('enter');
@@ -223,6 +244,7 @@
     $('pool-info').textContent = T.pool(elig, data.names.length);
     const btn = $('main-btn');
     if (spinningPrizeId) btn.textContent = T.spinning;
+    else if (intro) btn.textContent = T.begin;
     else if (!res) btn.textContent = T.spin;
     else if (isLast()) btn.textContent = T.showSummary;
     else btn.textContent = T.next;
@@ -251,10 +273,11 @@
       const card = document.createElement('article');
       card.style.setProperty('--i', i);
       card.className = 'summary-card' + (p.rank === 1 ? ' first' : '');
-      card.innerHTML = '<div class="s-img"><img alt=""></div><div class="s-rank"></div><div class="s-prize"></div><div class="s-winner"></div>';
+      card.innerHTML = '<div class="s-img"><img alt=""></div><div class="s-rank"></div><div class="s-prize"></div><div class="s-secondary"></div><div class="s-winner"></div>';
       setImage(card.querySelector('img'), p.imageUrl);
       card.querySelector('.s-rank').textContent = T.rank(p.rank);
       card.querySelector('.s-prize').textContent = p.name;
+      card.querySelector('.s-secondary').textContent = p.secondary;
       card.querySelector('.s-winner').textContent = r ? r.name || '—' : T.pending;
       grid.appendChild(card);
     });
@@ -317,6 +340,7 @@
     $('opt-style').value = prefs.style;
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
+    $('opt-list').checked = prefs.showList;
     $('order-hint').hidden = !(state && anyResults());
   }
   function openSettings() {
@@ -376,6 +400,7 @@
     });
     $('theme-select').value = name;
     $('opt-theme').value = name;
+    if (data && state && wheel) render(); // the start screen image can differ per theme
     const href = window.lotteryThemeHref(name);
     const old = $('theme-css');
     if (old && old.getAttribute('href') === href) { L.theme.read(); fitToolbar(); return; }
@@ -396,6 +421,7 @@
    * Measures the toolbar with the drop-down shown, so there is no flip-flopping.
    */
   function fitToolbar() {
+    if (document.body.classList.contains('topbar-hidden')) return; // nothing to measure
     const bar = $('topbar');
     const tb = bar.querySelector('.toolbar');
     document.body.classList.remove('compact-toolbar');
@@ -464,6 +490,18 @@
     $('main-btn').disabled = true;
   }
 
+  /** Layout preferences: prize list on/off, top bar hidden/shown. */
+  function applyLayoutPrefs() {
+    document.body.classList.toggle('hide-list', !prefs.showList);
+    document.body.classList.toggle('topbar-hidden', !!prefs.topbarHidden);
+    if (!prefs.topbarHidden) fitToolbar();
+  }
+  function toggleTopbar() {
+    prefs.topbarHidden = !prefs.topbarHidden;
+    L.store.savePrefs(prefs);
+    applyLayoutPrefs();
+  }
+
   function updateSoundBtn() {
     $('btn-sound').textContent = prefs.sound ? '🔊' : '🔇';
     L.fx.sound.enabled = prefs.sound;
@@ -518,6 +556,13 @@
       L.store.savePrefs(prefs);
       updateSoundBtn();
     });
+    $('opt-list').addEventListener('change', (e) => {
+      prefs.showList = e.target.checked;
+      L.store.savePrefs(prefs);
+      applyLayoutPrefs();
+    });
+    $('btn-hide-topbar').addEventListener('click', toggleTopbar);
+    $('btn-show-topbar').addEventListener('click', (e) => { toggleTopbar(); e.currentTarget.blur(); });
     $('opt-order').addEventListener('change', async (e) => {
       const order = e.target.value;
       // Changing the order mid-lottery would scramble which prizes are done, so it restarts the draw.
@@ -548,6 +593,7 @@
       } else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
       else if (e.key === 'm' || e.key === 'M') toggleSound();
       else if (e.key === 'l' || e.key === 'L') nextLanguage();
+      else if (e.key === 'h' || e.key === 'H') toggleTopbar();
       else if (e.key === 'Escape' && !$('summary').hidden) closeSummary();
     });
   }
@@ -559,6 +605,7 @@
     const urlLang = new URLSearchParams(location.search).get('lang');
     applyLanguage(L.i18n.languages().includes(urlLang) ? urlLang : prefs.lang);
     applyTheme(document.documentElement.dataset.theme); // chosen & loaded early by the inline script in <head>
+    applyLayoutPrefs();
 
     L.fx.confetti.init($('confetti'));
     wheel = new L.Wheel($('wheel'), Object.assign({}, cfg.wheel, { style: prefs.style }));

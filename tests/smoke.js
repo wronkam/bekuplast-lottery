@@ -3,7 +3,9 @@
  * Needs Playwright with Chromium (`npm i -D playwright && npx playwright install chromium`
  * locally; it is pre-installed in Claude Code cloud sessions).
  * Starts its own static server, speeds the wheel up, and checks:
- *   - a full draw (two presses per prize) with unique winners, no JS errors
+ *   - start screen first, then a full draw (two presses per prize) with unique winners, no JS errors
+ *   - prize list hidden by default + Settings switch, hide/show top bar, every summary card bordered
+ *   - the bundled brand font loads (bekuplast themes)
  *   - progress survives a reload, reset works
  *   - every theme in js/config.js loads its stylesheet and sets the CSS variables
  *   - every language has the same keys as English and switches the UI
@@ -57,7 +59,25 @@ function serve() {
     const p = await newPage();
     await p.goto(base); await p.waitForTimeout(300);
     const prizes = await p.$$eval('#results-list li', (l) => l.length);
-    for (let i = 0; i < prizes * 2 + 2; i++) {
+    const startImg = await p.evaluate(() => window.LOTTERY_CONFIG.startImage);
+    if (startImg) {
+      const intro = await p.evaluate(() => ({ intro: document.body.classList.contains('intro'),
+        btn: document.getElementById('main-btn').textContent, begin: window.LOTTERY_I18N.en.begin,
+        img: document.getElementById('prize-image').getAttribute('src') }));
+      ok(intro.intro && intro.btn === intro.begin && !!intro.img, `start screen first (${intro.img})`);
+      await p.click('#main-btn'); await p.waitForTimeout(150);
+      const first = await p.evaluate(() => [document.body.classList.contains('intro'), document.body.classList.contains('is-spinning'),
+        document.getElementById('main-btn').textContent]);
+      ok(!first[0] && !first[1] && first[2] === 'Spin!', 'first press shows prize 1 without spinning');
+    }
+    ok(await p.isHidden('.results-panel'), 'prize list hidden by default');
+    await p.click('#btn-settings'); await p.check('#opt-list'); await p.click('#settings-form button[value=close]');
+    ok(await p.isVisible('.results-panel'), 'Settings switch shows the prize list');
+    await p.click('#btn-hide-topbar');
+    ok((await p.isHidden('#topbar')) && (await p.isVisible('#btn-show-topbar')), 'top bar hides, reveal button appears');
+    await p.click('#btn-show-topbar');
+    ok((await p.isVisible('#topbar')) && (await p.isHidden('#btn-show-topbar')), 'top bar comes back');
+    for (let i = 0; i < prizes * 2 + 4; i++) {
       if ((await p.textContent('#main-btn')).includes('🏆')) break;
       await p.click('#main-btn');
       await p.waitForFunction(() => !document.getElementById('main-btn').disabled, null, { timeout: 15000 });
@@ -69,6 +89,10 @@ function serve() {
     ok(after.every(Boolean) && new Set(after).size === after.length, 'winners unique and kept after reload');
     await p.click('#main-btn'); await p.waitForTimeout(300);
     ok(await p.isVisible('#summary'), 'summary opens after the last prize');
+    const borders = await p.$$eval('.summary-card', (cards) => {
+      return cards.map((c) => getComputedStyle(c).borderLeftColor);
+    });
+    ok(borders.length === prizes && new Set(borders).size === 1, `every summary card has the same border (${borders[0]})`);
     await p.click('#btn-summary-reset'); await p.click('#confirm-ok'); await p.waitForTimeout(200);
     ok((await p.$$eval('.r-winner', (w) => w.filter((x) => x.textContent).length)) === 0, 'reset clears results');
     await p.close();
@@ -86,6 +110,13 @@ function serve() {
       sheetLoaded: [...document.styleSheets].some((s) => s.ownerNode && s.ownerNode.id === 'theme-css' && s.cssRules.length > 0),
     }));
     ok(r.theme === t && r.sheetLoaded && r.accent && r.wheel, `${t}: stylesheet ${r.href} loaded, --accent=${r.accent}`);
+    const font = await p.evaluate(async () => {
+      const fam = getComputedStyle(document.body).fontFamily;
+      if (!fam.includes('Brand Font')) return 'not used';
+      await document.fonts.ready;
+      return [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Brand Font' && f.status === 'loaded') ? 'loaded' : 'MISSING';
+    });
+    ok(font !== 'MISSING', `${t}: brand font ${font}`);
     await p.close();
   }
 
@@ -101,7 +132,8 @@ function serve() {
     for (const l of cfg.langs) {
       await p.click(`#btn-lang [data-lang="${l}"]`); await p.waitForTimeout(100);
       const r = await p.evaluate(() => [document.documentElement.lang, document.querySelector('h1').textContent, document.getElementById('main-btn').textContent]);
-      const exp = await p.evaluate((code) => [code, window.LOTTERY_I18N[code].title, window.LOTTERY_I18N[code].spin], l);
+      const exp = await p.evaluate((code) => [code, window.LOTTERY_I18N[code].title,
+        window.LOTTERY_I18N[code][window.LOTTERY_CONFIG.startImage ? 'begin' : 'spin']], l);
       ok(JSON.stringify(r) === JSON.stringify(exp), `${l}: UI switched (${r[1]} / ${r[2]})`);
     }
     await p.close();

@@ -11,7 +11,7 @@ This is the technical handbook for **bekuplast-lottery**. Read it before changin
 ## 1. Ground rules (do not break these)
 
 1. **No build step and no npm dependencies at runtime.** Use plain `<script>` files, not ES modules, so `index.html` also works when opened from disk (`file://`). Don't introduce bundlers, frameworks or `import`/`export` in `js/`.
-2. **External requests:** the only one the page makes is Google Fonts, from inside a theme (`@import` in `themes/bekuplast*/theme.css`). Everything else is local, so the app must keep working offline; missing fonts fall back to system fonts.
+2. **No external requests.** Everything is local, including the brand font (`fonts/brand-font.woff2`), so the app works offline at a venue with no Wi-Fi. Don't add CDN scripts or web-font `@import`s to the built-in themes.
 3. **Randomness stays fair.** Winners come from `L.fx.randomInt` (crypto with rejection sampling). The animation is aimed at the pre-chosen winner, never the other way round.
 4. **The result is committed before the animation** (`spin()` in `js/app.js`). A reload mid-spin must not re-roll. Keep it that way.
 5. **Every UI string goes through i18n** (`js/i18n.js`), and every language must have the same keys. The smoke test checks this.
@@ -34,10 +34,12 @@ js/storage.js              L.store: localStorage (progress, prefs) + IndexedDB (
 js/effects.js              L.fx: RNG, shuffle, sound, confetti, flyText; L.theme: reads CSS variables for the canvas
 js/wheel.js                L.Wheel class + RENDERERS (drum, pie); L.wheelStyles
 js/app.js                  the app: data loading, state machine, rendering, dialogs, theme/language switching
-data/names.csv, prizes.csv demo data (300 names, 8 prizes)
+data/names.csv, prizes.csv demo data (300 names; 8 prizes with Polish name + German secondary_name)
 images/prizes/*.svg        demo prize images
+images/start.svg           default start-screen image (themes can override; Christmas has its own)
+fonts/brand-font.woff2     bundled brand font (Manrope, OFL); "Brand Font" in CSS; drop-in replaceable (fonts/README.md)
 tests/smoke.js             end-to-end smoke test (Playwright); not deployed
-.github/workflows/pages.yml  deploys: copies index.html css js data images themes → Pages
+.github/workflows/pages.yml  deploys: copies index.html css js data images themes fonts → Pages
 README.md                  user docs (usage, CSV formats, config, themes)
 ```
 
@@ -61,13 +63,14 @@ README.md                  user docs (usage, CSV formats, config, themes)
 ### Data (`loadData`)
 - **Source:** if the user uploaded files (IndexedDB key `upload`), use them. Otherwise fetch `config.data.namesUrl` / `prizesUrl`.
 - **`data` object:** `{ names: string[], prizes: Prize[], byId, key, source: 'demo'|'upload', warnings[], namesText, prizesText, images: File[] }`.
-- **`Prize`:** `{ id: 'p<index>', rank: number, name, image, description, imageUrl }`. Prizes are sorted by `rank`; 1 is the best.
+- **`Prize`:** `{ id: 'p<index>', rank: number, name, secondary, image, imageUrl }`. Prizes are sorted by `rank`; 1 is the best.
+- **`secondary`:** the prize name in a second language, from the `secondary_name` column (older `description` columns map here too). It's shown in `#prize-desc` under the name and as `.s-secondary` on the summary. The typical use is a Polish name with the German translation.
 - **`imageUrl`:** if the basename of the `image` column matches an uploaded file, it's that file's object URL. Otherwise it's the path as written, relative to `index.html`. A missing or broken image shows the 🎁 placeholder (`.no-image`).
 - **`data.key`:** a hash of names and prizes. Saved progress is only restored if the key matches, so new data means a fresh lottery.
 
 ### State (persisted in localStorage `<storageKey>:state`)
 ```js
-state = { key, order: [prizeId…], current: <index into order>, results: { [prizeId]: { nameIndex, name } }, showSummary }
+state = { key, order: [prizeId…], current: <index into order, or -1 = start screen>, results: { [prizeId]: { nameIndex, name } }, showSummary }
 ```
 - **`order`:** prizes sorted by rank, ascending for `drawOrder: 'asc'` or descending for `'desc'`. Changing the order mid-lottery resets, after a confirmation.
 - **`results[prizeId] = { nameIndex: null, name: null }`:** the prize had no eligible participants left.
@@ -77,6 +80,7 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 ### Main button (`mainAction`): the state machine
 | Situation | Press does | Button text (i18n key) |
 | --- | --- | --- |
+| start screen (`current === -1`, `body.intro`) | `current++` to the first prize, exactly like "next prize" | `begin` |
 | current prize not drawn | `spin()` | `spin` |
 | spinning | (ignored, `busy`) | `spinning` |
 | drawn, not last | `current++`, `prepareWheel()`, `render(true)`; also `spin()` if `config.spinOnNext` (default **false**: two presses per prize) | `next` |
@@ -89,6 +93,8 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 4. `await wheel.spinTo(pos)`.
 5. Fanfare, confetti, then `L.fx.flyText(name → #winner-name)`, then `render()` with the "pop" animation.
 
+**Start screen:** it exists only if a start image is configured (`startImageUrl()`: the theme's `startImage`, else `config.startImage`; `null` turns it off). `createState()` then sets `current = -1`. `render()` shows the start image, the `introTitle` and the `introHint`, and CSS hides the winner box (`body.intro`). Reset and draw-order changes return to the start screen. `currentPrize()` is `null` there, so guard any new code that uses it with `inIntro()`.
+
 **`prepareWheel()`** shuffles the eligible pool onto the wheel. After a reload on an already-drawn prize, it puts the winner back under the pointer.
 
 **Keyboard** (handler in `bindEvents`; ignored while a dialog is open or an input or select has focus):
@@ -98,6 +104,7 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 | Space / Enter / → / PageDown | Main button |
 | F | Fullscreen |
 | M | Sound |
+| H | Hide / show the top bar |
 | L | Next language |
 | Esc | Close summary |
 
@@ -113,6 +120,9 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
   - Calls `L.i18n.set` and then `applyStatic()`, which fills `data-i18n` and `data-i18n-title`.
   - Rebuilds the language switch, the wheel-style and theme options, and calls `fitToolbar()`.
   - Re-renders the stage, the summary and the open Settings dialog.
+- **`applyLayoutPrefs()` / `toggleTopbar()`:**
+  - `prefs.showList` controls `body.hide-list`. The prize list is hidden by default (`config.showPrizeList: false`); with the list hidden, the stage uses two columns on screens wider than 1100 px. The switch is `#opt-list` in Settings.
+  - `prefs.topbarHidden` controls `body.topbar-hidden`. The top bar is hidden and only `#btn-show-topbar` (a faint ▾ in the corner) remains. The ▴ button `#btn-hide-topbar` and the H key toggle it.
 - **`fitToolbar()`:**
   - Measures the toolbar with the Style drop-down visible.
   - If it doesn't fit next to the title (with ~170 px reserved for the title, plus the logo), it adds `body.compact-toolbar`. CSS then hides `#theme-select` and shows the `#opt-theme` row in Settings.
@@ -122,14 +132,14 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 | Where | Key | Content |
 | --- | --- | --- |
 | localStorage | `<storageKey>:state` | lottery progress (above) |
-| localStorage | `<storageKey>:prefs` | `{ style, sound, drawOrder, lang, theme }` |
+| localStorage | `<storageKey>:prefs` | `{ style, sound, drawOrder, lang, theme, showList, topbarHidden }` |
 | IndexedDB db `<storageKey>`, store `kv` | `upload` | `{ namesText, prizesText, images: File[], warnings[] }` |
 | URL | `?theme=<name>&lang=<code>` | overrides prefs for this visit (removed from the URL when the user switches) |
 
 `storageKey` is set in `config.js` (`bekuplast-lottery`). Change it to run a separate lottery with no shared saved data.
 
 ### Body / html attributes that CSS can use
-`html[data-theme="<name>"]`, `html[lang]`, `body[data-wheel="drum"|"pie"]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`.
+`html[data-theme="<name>"]`, `html[lang]`, `body[data-wheel="drum"|"pie"]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`, `body.intro` (start screen), `body.hide-list` (prize list off), `body.topbar-hidden`.
 
 ---
 
@@ -158,8 +168,8 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
   - With a header, only the matching columns are joined with spaces, so an email column is ignored. Without one, all columns are joined.
   - Duplicate names are kept, with a warning.
 - **Prizes:**
-  - Columns are found by the aliases in `config.csv.prizeColumns` (`rank`, `name`, `image`, `description`; EN/PL/DE).
-  - With no recognised header, the column order is rank, name, image, description.
+  - Columns are found by the aliases in `config.csv.prizeColumns` (`rank`, `name`, `image`, `secondary`; EN/PL/DE). `secondary` accepts `secondary_name`, `translation`, `name_de`, `tłumaczenie`, `übersetzung` and, for older files, `description` or `opis`.
+  - With no recognised header, the column order is rank, name, image, secondary.
   - An invalid rank gets the row index, with a warning.
 - **Error messages** come from i18n, via `L.i18n.t`.
 
@@ -186,7 +196,7 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 - **Adding a text:** add the key to **every** language block, use it, and run the smoke test. It fails on missing keys.
 - **Adding a language:** copy the `en` block under a new code and translate `languageName` and everything else. The EN | PL | DE switch picks it up automatically. Optionally add header aliases in `config.csv` and theme labels in `config.themes[*].label`.
 - **Polish and German wording:** gender-neutral where it was easy, e.g. "Wylosowano" / "Gezogen" instead of "winner". German uses "Teilnehmende".
-- **Data stays as written:** prize names and descriptions come from the CSV and are never translated.
+- **Data stays as written:** prize names and their second-language names come from the CSV and are never translated by the app.
 
 ---
 
@@ -197,11 +207,16 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 - **One theme at a time:** only the active theme's stylesheet is loaded. Switching swaps the `<link id="theme-css">` live, without a reload.
 - **Path:** `themes/<name>/theme.css` by default, or `config.themes[name].css` if set (`lotteryThemeHref`).
 - **Canvas colours:** the wheel and confetti read the same CSS variables.
+- **Brand font:**
+  - `@font-face { font-family: "Brand Font" }` sits at the top of `css/styles.css`, outside the layer.
+  - It loads `fonts/brand-font.woff2`, falling back to `.ttf` and then `.otf`. It declares weights 100–900; the bundled file is variable Manrope 200–800.
+  - **Drop-in replacement** means replacing that file under the same name, or deleting it and adding a `.ttf`/`.otf`. The smoke test checks that the font loads, and this TTF fallback was verified by hand.
+  - The canvas uses `--font` too. The DOM loads the font, and the canvas picks it up on its next frame.
 
 ### File structure (keep this order)
 ```css
 /* header comment: theme name + one-line description + "Structure: see themes/_template/theme.css" */
-/* ---------- 1. Fonts ---------- */      optional @import (must be the first rule)
+/* ---------- 1. Fonts ---------- */      optional: use "Brand Font" or a local @font-face (url relative to theme.css)
 /* ---------- 2. Variables ---------- */  :root { …ALL variables below… }
 /* ---------- 3. Component overrides ---------- */  optional plain-selector rules
 ```
@@ -218,7 +233,7 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 | Native controls | `color-scheme: light \| dark` |
 
 ### Useful component hooks for section 3
-`.topbar` (`::after` is free, e.g. for a stripe), `.brand h1`, `.logo`, `.panel`, `.tag` (`::after` = decoration such as the bekuplast dot or ❄), `.prize-card`, `.prize-image` (keep `::after` free: the 🎁 placeholder uses it), `.prize-name`, `.winner-slot(.has-winner/.no-winner)`, `.winner-label`, `.winner-name`, `.wheel-wrap`, `body[data-wheel="drum"] .wheel-wrap`, `.readout`, `.pool-info`, `.results-list li(.current/.done/.upcoming)`, `.badge`, `.r-winner`, `.btn`, `.btn-main`, `.btn-ghost`, `.btn-danger`, `.icon-btn`, `.toolbar-select`, `.lang-switch span(.active)`, `.summary h2`, `.summary-card(.first)`, `.s-img`, `.s-rank`, `.s-prize`, `.s-winner`, `.summary-logo`, `.flying-name`, `.dialog`, `.dialog legend`. `body::before`/`::after` are free for page effects (the Christmas theme puts snow there, at z-index 45 with `pointer-events: none`).
+`.topbar` (`::after` is free, e.g. for a stripe), `.brand h1`, `.logo`, `.panel`, `.tag` (`::after` = decoration such as the bekuplast dot or ❄), `.prize-card`, `.prize-image` (keep `::after` free: the 🎁 placeholder uses it), `.prize-name`, `.winner-slot(.has-winner/.no-winner)`, `.winner-label`, `.winner-name`, `.wheel-wrap`, `body[data-wheel="drum"] .wheel-wrap`, `.readout`, `.pool-info`, `.results-list li(.current/.done/.upcoming)`, `.badge`, `.r-winner`, `.btn`, `.btn-main`, `.btn-ghost`, `.btn-danger`, `.icon-btn`, `.toolbar-select`, `.lang-switch span(.active)`, `.summary h2`, `.summary-card` (every card gets the accent border; `.first` = grand prize, extra glow only), `.s-img`, `.s-rank`, `.s-prize`, `.s-secondary`, `.s-winner`, `.topbar-reveal`, `.summary-logo`, `.flying-name`, `.dialog`, `.dialog legend`. `body::before`/`::after` are free for page effects (the Christmas theme puts snow there, at z-index 45 with `pointer-events: none`).
 
 ### Adding a theme: checklist
 1. `cp -r themes/_template themes/<name>`. Edit the header and all variables, and add assets (logo etc.) to the folder.
@@ -226,7 +241,7 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
    ```js
    '<name>': { label: { en: 'My theme', pl: 'Mój motyw', de: 'Mein Thema' }, logoUrl: 'themes/<name>/logo.png' },
    ```
-   `label` can be a plain string. `logoUrl` is optional; `null` means no logo. You can point to another theme's asset, as `bekuplast-christmas` does with `themes/bekuplast/logo.png`.
+   `label` can be a plain string. `logoUrl` is optional; `null` means no logo. You can point to another theme's asset, as `bekuplast-christmas` does with `themes/bekuplast/logo.png`. Add `startImage: 'themes/<name>/start.svg'` for a themed start screen (400×300 artwork without text works best, since the title is translated).
 3. Run `node tests/smoke.js`. It loads every registered theme, checks the top bar at 390, 1024, 1366 and 1920 px in every language, and checks for JavaScript errors.
 4. Look at it with `?theme=<name>`. Check the drum and the pie (⚙ → Wheel style), the summary (finish a draw), the settings dialog, and a phone width.
 5. Optionally mention it in the README's theme table.
@@ -239,19 +254,21 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 - **Decorations near the image look random.** The image area is usually larger than the picture, so anything positioned on its corner floats in empty space. The bekuplast corner block was removed for this reason.
 - **`--wheel-radius` must be a plain number** (no `px`). The canvas parses it.
 - **Keep the top bar narrow.** Long labels or wide buttons force the Style drop-down into Settings (`compact-toolbar`), which is acceptable. Overlap or horizontal scrolling is not, and the smoke test catches it.
+- **Summary borders:** style `.summary-card` for all cards. Keep `.summary-card.first` for extra emphasis only, not the border itself; all prizes should look equally framed.
+- **Fonts:** don't `@import` web fonts. Point `--font` at `"Brand Font"`, or add a font file to the theme folder with your own `@font-face`.
 - **Respect reduced motion.** Wrap animated decorations in `@media (prefers-reduced-motion: reduce) { … animation: none }`.
 
 ### Existing themes
 | Name | Notes |
 | --- | --- |
 | `default` ("Classic") | Dark navy and gold, pill buttons, rainbow pie sweep, system fonts. The default (`config.theme`). |
-| `bekuplast` | Matches bekuplast.pl: `#f3f3f3` page, white cards, green `#78b146`, text `#424242`, Manrope, bordered uppercase `.tag` with a small square dot, square-ish corners. |
+| `bekuplast` | Matches bekuplast.pl: `#f3f3f3` page, white cards, green `#78b146`, text `#424242`, Brand Font (Manrope), bordered uppercase `.tag` with a small square dot, square-ish corners. |
 | `bekuplast-christmas` | Red panels with gold trim, gold Spin button, red drum with gold names, gold/red/green garland under the top bar, two-layer CSS snow, ❄ tags, cream logo plaque, pie in red/gold/green blocks (`--wheel-many: blocks`). |
 
 ---
 
 ## 9. Configuration reference (`js/config.js`)
-`logoUrl`, `language`, `theme`, `themes`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
+`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `css`), `showPrizeList`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
 
 ---
 
@@ -261,9 +278,12 @@ state = { key, order: [prizeId…], current: <index into order>, results: { [pri
 node tests/smoke.js     # ~30 s; exit code 0 = pass
 ```
 - **Setup:** needs Playwright with Chromium. It's pre-installed in Claude Code cloud sessions. Locally: `npm i -D playwright && npx playwright install chromium`, run outside the repo or ignore `node_modules`.
-- **Speed and isolation:** it serves the repo itself and rewrites `config.js` on the fly for fast spins. Google Fonts are blocked, so it runs offline.
+- **Speed and isolation:** it serves the repo itself and rewrites `config.js` on the fly for fast spins. Any Google Fonts request is blocked, so it runs offline.
 - **What it checks:**
-  - A full draw with the two-press flow and unique winners.
+  - The start screen first, then a full draw with the two-press flow and unique winners.
+  - The prize list hidden by default and its Settings switch; hiding and showing the top bar.
+  - Every summary card having the same border.
+  - The brand font loading in the themes that use it.
   - Persistence across a reload, the summary, and reset.
   - Every registered theme loads and defines its variables.
   - All languages have identical keys and switch the UI.
@@ -278,7 +298,7 @@ Manual run: `python3 -m http.server 8000` and open http://localhost:8000. Openin
 ## 11. Deployment & git
 
 - **Deploy:** pushing to **`main`** deploys automatically (`.github/workflows/pages.yml`; Pages source = GitHub Actions). A deploy takes about 1–5 minutes.
-- **What gets published:** the workflow copies **only** `index.html css js data images themes`. A new top-level folder needed at runtime must be added to the `cp -r` line. `tests/` and the docs are intentionally not published.
+- **What gets published:** the workflow copies **only** `index.html css js data images themes fonts`. A new top-level folder needed at runtime must be added to the `cp -r` line. `tests/` and the docs are intentionally not published.
 - **Before pushing:**
   1. Run the smoke test.
   2. Update `README.md` (user-facing) and this file (technical) when you change behaviour, config options, i18n keys or the theme contract.

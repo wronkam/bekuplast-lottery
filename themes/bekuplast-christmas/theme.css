@@ -1,12 +1,12 @@
 /* =====================================================================
  *  THEME: bekuplast-christmas – festive variant of the bekuplast theme
  *  rich Christmas red with gold trim, falling snow, pine-green touches,
- *  bekuplast logo & Manrope
+ *  bekuplast logo & brand font
  *  Structure: see themes/_template/theme.css
  * ===================================================================== */
 
 /* ---------- 1. Fonts ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+/* bundled locally: fonts/brand-font.woff2 (Manrope) – see fonts/README.md; no internet needed */
 
 /* ---------- 2. Variables ---------- */
 :root {
@@ -40,7 +40,7 @@
   --danger-contrast: #9e0c24;
 
   /* typography & shape */
-  --font: "Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font: "Brand Font", "Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --heading-tracking: -0.02em;
   --radius: 8px;
   --btn-radius: 8px;
@@ -204,9 +204,10 @@ body[data-wheel="drum"] .wheel-wrap { border: 2px solid var(--xmas-gold); border
 .summary-card {
   text-align: left;
   background: linear-gradient(180deg, #8c1123, #6a0b19);
-  border: 1px solid var(--border);
+  border: 2px solid var(--xmas-gold);
+  border-top-width: 6px;
 }
-.summary-card.first { border: 2px solid var(--xmas-gold); border-top-width: 6px; box-shadow: 0 0 44px rgba(242, 193, 78, 0.45); }
+.summary-card.first { box-shadow: 0 0 44px rgba(242, 193, 78, 0.45); }   /* grand prize: extra glow */
 .s-img { background: rgba(60, 4, 12, 0.55); }
 .s-img img { max-width: calc(100% - 16px); max-height: calc(100% - 16px); border-radius: 4px; }
 .s-rank { color: var(--xmas-gold); }

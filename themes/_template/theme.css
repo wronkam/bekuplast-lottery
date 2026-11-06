@@ -18,7 +18,11 @@
  * ===================================================================== */
 
 /* ---------- 1. Fonts (optional) ---------- */
-/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"); */
+/* Prefer local fonts so the page works offline:
+ *   - the bundled brand font: just use --font: "Brand Font", … (fonts/brand-font.woff2, see fonts/README.md)
+ *   - or your own file:  @font-face { font-family: "My Font"; src: url("my-font.woff2") format("woff2"); font-weight: 100 900; }
+ *     (path relative to this theme.css, e.g. put my-font.woff2 in this folder)
+ * Web fonts (@import url("https://fonts.googleapis.com/…")) work too but need internet. */
 
 /* ---------- 2. Variables ---------- */
 :root {
@@ -43,7 +47,7 @@
   --danger-contrast: #ffffff;
 
   /* typography & shape */
-  --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; /* or "Brand Font", … */
   --heading-tracking: 0;            /* letter-spacing of headings and names */
   --radius: 8px;                    /* panels & cards */
   --btn-radius: 8px;                /* buttons; 999px = pill */
@@ -79,7 +83,8 @@
 /* ---------- 3. Component overrides (optional) ----------
  * Useful hooks: .topbar .panel .prize-card .prize-image .tag .winner-slot(.has-winner)
  * .results-list li(.current/.done/.upcoming) .btn .btn-main .icon-btn .toolbar-select
- * .summary-card(.first) .flying-name .dialog   body[data-wheel="drum"|"pie"]
+ * .summary-card (all cards; .first = grand prize, use for extra glow only) .s-secondary .flying-name .dialog
+ * body[data-wheel="drum"|"pie"]  body.intro (start screen)  body.hide-list  body.topbar-hidden  .topbar-reveal
  * Tip: if you restyle .btn:hover, also set .btn-main:hover { background: var(--main-btn-bg-hover); }
  * (theme rules beat the base ones, so a generic .btn:hover would otherwise recolour the Spin button).
  */

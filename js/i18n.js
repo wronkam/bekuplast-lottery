@@ -13,6 +13,13 @@
 window.LOTTERY_I18N = {
   en: {
     languageName: 'English',
+    // start screen, top bar & list toggles
+    begin: 'Start ➜',
+    introTitle: 'Welcome to the prize draw!',
+    introHint: (prizes, people) => `${prizes} prizes · ${people} participants`,
+    hideMenuTip: 'Hide top bar (H)',
+    showMenuTip: 'Show top bar (H)',
+    showPrizeList: 'Show prize list',
     title: 'Bekuplast Lottery',
     subtitle: 'Prize draw',
 
@@ -66,7 +73,7 @@ window.LOTTERY_I18N = {
     namesCsv: 'Names CSV',
     namesHint: '(one name per row, UTF-8)',
     prizesCsv: 'Prizes CSV',
-    prizesHint: '(columns: rank, name, image)',
+    prizesHint: '(columns: rank, name, secondary_name, image)',
     prizeImages: 'Prize images',
     imagesHint: '(optional, select many; matched by file name from the image column)',
     templates: 'Templates:',
@@ -108,6 +115,12 @@ window.LOTTERY_I18N = {
 
   pl: {
     languageName: 'Polski',
+    begin: 'Zaczynamy ➜',
+    introTitle: 'Zapraszamy na losowanie nagród!',
+    introHint: (prizes, people) => `Nagrody: ${prizes} · Uczestnicy: ${people}`,
+    hideMenuTip: 'Ukryj górny pasek (H)',
+    showMenuTip: 'Pokaż górny pasek (H)',
+    showPrizeList: 'Pokaż listę nagród',
     title: 'Loteria Bekuplast',
     subtitle: 'Losowanie nagród',
 
@@ -152,7 +165,7 @@ window.LOTTERY_I18N = {
     namesCsv: 'Plik CSV z uczestnikami',
     namesHint: '(jedno imię i nazwisko w wierszu, UTF-8)',
     prizesCsv: 'Plik CSV z nagrodami',
-    prizesHint: '(kolumny: miejsce, nagroda, obraz)',
+    prizesHint: '(kolumny: miejsce, nazwa, nazwa w drugim języku, obraz)',
     prizeImages: 'Zdjęcia nagród',
     imagesHint: '(opcjonalnie, można zaznaczyć wiele; dopasowane po nazwie pliku z kolumny obrazu)',
     templates: 'Szablony:',
@@ -193,6 +206,12 @@ window.LOTTERY_I18N = {
 
   de: {
     languageName: 'Deutsch',
+    begin: 'Los geht’s ➜',
+    introTitle: 'Willkommen zur Preisverlosung!',
+    introHint: (prizes, people) => `${prizes} Preise · ${people} Teilnehmende`,
+    hideMenuTip: 'Obere Leiste ausblenden (H)',
+    showMenuTip: 'Obere Leiste einblenden (H)',
+    showPrizeList: 'Preisliste anzeigen',
     title: 'Bekuplast Verlosung',
     subtitle: 'Preisverlosung',
 
@@ -237,7 +256,7 @@ window.LOTTERY_I18N = {
     namesCsv: 'Teilnehmer-CSV',
     namesHint: '(ein Name pro Zeile, UTF-8)',
     prizesCsv: 'Preise-CSV',
-    prizesHint: '(Spalten: Platz, Preis, Bild)',
+    prizesHint: '(Spalten: Platz, Name, Name in zweiter Sprache, Bild)',
     prizeImages: 'Preisbilder',
     imagesHint: '(optional, Mehrfachauswahl; Zuordnung über den Dateinamen in der Bildspalte)',
     templates: 'Vorlagen:',

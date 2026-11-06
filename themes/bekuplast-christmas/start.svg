@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d5a3f"/><stop offset="1" stop-color="#0b2a1d"/></linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.2" r="0.6"><stop offset="0" stop-color="#ffe08a" stop-opacity=".45"/><stop offset="1" stop-color="#ffe08a" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="400" height="300" rx="10" fill="url(#bg)"/>
+  <rect width="400" height="300" rx="10" fill="url(#glow)"/>
+  <!-- snow -->
+  <g fill="#fff" opacity=".85">
+    <circle cx="40" cy="40" r="2.5"/><circle cx="90" cy="90" r="2"/><circle cx="60" cy="150" r="3"/><circle cx="110" cy="30" r="1.8"/>
+    <circle cx="330" cy="50" r="2.5"/><circle cx="360" cy="120" r="2"/><circle cx="300" cy="95" r="1.8"/><circle cx="350" cy="190" r="3"/>
+    <circle cx="30" cy="220" r="2"/><circle cx="160" cy="20" r="2"/><circle cx="250" cy="25" r="2.2"/>
+  </g>
+  <!-- snowy ground -->
+  <path d="M0 262 Q100 240 200 258 T400 255 V290 a10 10 0 0 1 -10 10 H10 a10 10 0 0 1 -10 -10Z" fill="#fff4dc"/>
+  <!-- tree -->
+  <rect x="190" y="225" width="20" height="30" fill="#6b3b1f"/>
+  <path d="M200 50 L262 140 H232 L280 200 H246 L298 240 H102 L154 200 H120 L168 140 H138 Z" fill="#1f7a4d"/>
+  <path d="M200 50 L262 140 H232 L280 200 H246 L298 240 H200 Z" fill="#0f4d33" opacity=".35"/>
+  <!-- garland -->
+  <path d="M160 135 Q200 155 240 132 M140 195 Q200 220 262 192" stroke="#f2c14e" stroke-width="3" fill="none"/>
+  <!-- baubles -->
+  <circle cx="178" cy="160" r="7" fill="#c8102e"/><circle cx="226" cy="150" r="7" fill="#f2c14e"/>
+  <circle cx="160" cy="215" r="8" fill="#f2c14e"/><circle cx="205" cy="208" r="8" fill="#c8102e"/>
+  <circle cx="250" cy="222" r="7" fill="#fff4dc"/><circle cx="200" cy="110" r="6" fill="#c8102e"/>
+  <!-- star -->
+  <path d="M200 26 l7 15 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2z" fill="#ffe08a" stroke="#c99a2e" stroke-width="1.5"/>
+  <!-- presents -->
+  <rect x="88" y="232" width="44" height="34" rx="3" fill="#c8102e"/><rect x="106" y="232" width="8" height="34" fill="#f2c14e"/>
+  <rect x="84" y="226" width="52" height="10" rx="2" fill="#9e0c24"/>
+  <rect x="270" y="238" width="40" height="28" rx="3" fill="#f2c14e"/><rect x="286" y="238" width="8" height="28" fill="#c8102e"/>
+  <rect x="266" y="232" width="48" height="9" rx="2" fill="#e3a83a"/>
+  <rect x="312" y="246" width="30" height="20" rx="3" fill="#fff4dc"/><rect x="324" y="246" width="6" height="20" fill="#1f7a4d"/>
+</svg>

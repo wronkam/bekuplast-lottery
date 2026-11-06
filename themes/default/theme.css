@@ -61,5 +61,6 @@
 .results-list li { background: rgba(255, 255, 255, 0.03); }
 .results-list li.current { background: var(--accent-soft); }
 .summary h2 { color: var(--accent); }
-.summary-card.first { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 200, 61, 0.25); }
+.summary-card { border-color: var(--accent); }
+.summary-card.first { box-shadow: 0 0 40px rgba(255, 200, 61, 0.25); }   /* grand prize: extra glow */
 .dialog select { background: #0d1330; }

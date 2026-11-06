@@ -10,6 +10,9 @@ window.LOTTERY_CONFIG = {
   /* ---------- Branding ----------
    * Title & subtitle are translated texts: see `title` / `subtitle` in js/i18n.js. */
   logoUrl: null, // shown next to the title and on the summary (null = no logo); a theme can override it
+  // Start screen shown before the first prize (null = start directly with the first prize).
+  // The first press of the main button moves on to the first prize. A theme can override it.
+  startImage: 'images/start.svg',
 
   /* ---------- Language ----------
    * UI texts live in js/i18n.js (one dictionary per language).
@@ -21,6 +24,7 @@ window.LOTTERY_CONFIG = {
    * themes/_template/. Register it here; the order here is the order in the drop-down.
    *   label   – name shown in the drop-down (a string, or { en: '…', pl: '…' } per language)
    *   logoUrl – optional logo for this theme (null/omitted = global logoUrl)
+   *   startImage – optional start-screen image for this theme (omitted = global startImage)
    *   css     – optional custom stylesheet path (default: themes/<name>/theme.css)
    * Pick the default here, from the drop-down, or with ?theme=<name> in the URL. */
   theme: 'default',
@@ -30,6 +34,7 @@ window.LOTTERY_CONFIG = {
     'bekuplast-christmas': {
       label: { en: 'bekuplast Christmas', pl: 'bekuplast świąteczny', de: 'bekuplast Weihnachten' },
       logoUrl: 'themes/bekuplast/logo.png',
+      startImage: 'themes/bekuplast-christmas/start.svg',
     },
   },
 
@@ -46,6 +51,8 @@ window.LOTTERY_CONFIG = {
   // false -> after a winner is revealed, the next press only shows the next prize; another press spins
   // true  -> one press moves to the next prize AND spins straight away
   spinOnNext: false,
+  // Prize list with winners on the right (also a switch in Settings; remembered per browser)
+  showPrizeList: false,
   // Show the summary automatically this many ms after the last winner (null = wait for button)
   autoSummaryDelayMs: null,
 
@@ -88,7 +95,12 @@ window.LOTTERY_CONFIG = {
       rank: ['rank', 'place', 'number', 'no', 'nr', '#', 'position', 'miejsce', 'numer', 'pozycja', 'kolejność', 'platz', 'rang', 'nummer'],
       name: ['prize', 'name', 'prize name', 'title', 'nagroda', 'nazwa', 'preis', 'gewinn', 'bezeichnung'],
       image: ['image', 'img', 'picture', 'photo', 'path', 'image path', 'file', 'obraz', 'obrazek', 'zdjęcie', 'zdjecie', 'plik', 'bild', 'foto', 'datei'],
-      description: ['description', 'desc', 'details', 'opis', 'beschreibung'],
+      // second-language name shown under the prize name (e.g. Polish name + German translation)
+      secondary: [
+        'secondary_name', 'secondary name', 'secondary', 'secondary language', 'secondary_language', 'translation',
+        'name_de', 'name de', 'german', 'nazwa_de', 'tłumaczenie', 'tlumaczenie', 'übersetzung', 'uebersetzung',
+        'description', 'desc', 'opis', 'beschreibung', // older files used a description column
+      ],
     },
     exportDelimiter: ',', // use ';' if your Excel expects semicolons
   },

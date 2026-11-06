@@ -101,7 +101,8 @@ h1, h2, h3 { letter-spacing: var(--heading-tracking); }
   font-weight: 600;
   cursor: pointer;
 }
-.toolbar-select option { background: var(--dialog-bg); color: var(--text); }
+/* Give open option lists a solid background, so themes with translucent surfaces stay readable everywhere */
+select option { background: var(--dialog-bg); color: var(--text); }
 .lang-switch {
   display: inline-flex;
   align-items: center;

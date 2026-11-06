@@ -12,7 +12,7 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 
 ### Running the draw
 
-1. Open the page. It shows the first prize; by default that is **prize #1**. See [Configuration](#configuration) to start from the last prize instead.
+1. Open the page. It shows the first prize to draw; by default that is **prize #1**. To go **last to first** (finish with the grand prize), choose it under ⚙ → *Draw order*, or set `drawOrder` in the [configuration](#configuration).
 2. Press **Spin!** (or <kbd>Space</kbd>, <kbd>Enter</kbd>, <kbd>→</kbd>, or a presentation clicker's *next* key). The wheel spins and stops on a random participant, and the name flies under the prize.
 3. Press **Next prize ➜** to draw the next prize. Previous winners are removed from the wheel.
 4. After the last prize, press **Show results 🏆** to see the summary of all prizes and winners. From there you can **Download CSV**, **Print**, go back, or reset.
@@ -91,7 +91,7 @@ Almost everything is in **`js/config.js`**:
 | `logoUrl` | Logo in the top bar and on the summary (a theme can set its own) |
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
 | `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
-| `drawOrder` | `'asc'` = start with prize #1; `'desc'` = start with the highest number and finish with the grand prize #1. Also switchable in Settings. |
+| `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |
 | `spinOnNext` | `true`: one press moves to the next prize and spins. `false`: first press shows the prize, second press spins. |
 | `autoSummaryDelayMs` | Show the summary automatically after the last draw (`null` = wait for the button) |
 | `wheel.style` | `'drum'` (vertical reel, readable with hundreds of names) or `'pie'` (classic wheel). Also switchable in Settings. |

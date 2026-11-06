@@ -319,9 +319,7 @@
     $('opt-style').value = prefs.style;
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
-    const locked = !!(state && anyResults());
-    $('opt-order').disabled = locked;
-    $('order-locked').hidden = !locked;
+    $('order-hint').hidden = !(state && anyResults());
   }
   function openSettings() {
     fillSettings();
@@ -486,10 +484,22 @@
       L.store.savePrefs(prefs);
       updateSoundBtn();
     });
-    $('opt-order').addEventListener('change', (e) => {
-      prefs.drawOrder = e.target.value;
+    $('opt-order').addEventListener('change', async (e) => {
+      const order = e.target.value;
+      // Changing the order mid-lottery would scramble which prizes are done, so it restarts the draw.
+      if (data && state && anyResults() && !(await confirmDialog(T.orderResetQuestion, T.orderResetOk))) {
+        e.target.value = prefs.drawOrder;
+        return;
+      }
+      prefs.drawOrder = order;
       L.store.savePrefs(prefs);
-      if (data && !anyResults()) { createState(); prepareWheel(); render(true); }
+      if (data) {
+        $('summary').hidden = true;
+        createState();
+        prepareWheel();
+        render(true);
+        fillSettings();
+      }
     });
     // Remove focus from toolbar buttons so Space/Enter always drive the lottery.
     document.querySelectorAll('.toolbar button').forEach((b) => b.addEventListener('click', () => b.blur()));

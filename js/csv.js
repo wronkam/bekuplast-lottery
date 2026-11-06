@@ -60,6 +60,7 @@
       .filter((r) => r.some((f) => f !== ''));
   }
 
+  const t = (...a) => L.i18n.t(...a);
   const norm = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
   /**
@@ -69,7 +70,7 @@
   function parseNames(text, cfg) {
     const rows = parse(text);
     const warnings = [];
-    if (!rows.length) throw new Error('The names file is empty.');
+    if (!rows.length) throw new Error(t('namesEmpty'));
     const keywords = new Set(cfg.csv.nameHeaderKeywords.map(norm));
     let cols = null;
     if (rows[0].some((c) => keywords.has(norm(c)))) {
@@ -79,11 +80,11 @@
     const names = rows
       .map((r) => (cols ? cols.map((i) => r[i] || '') : r).filter(Boolean).join(' ').replace(/\s+/g, ' ').trim())
       .filter(Boolean);
-    if (!names.length) throw new Error('No names found in the names file.');
+    if (!names.length) throw new Error(t('noNames'));
     const seen = new Map();
     names.forEach((n) => seen.set(n, (seen.get(n) || 0) + 1));
     const dups = [...seen].filter(([, c]) => c > 1).map(([n]) => n);
-    if (dups.length) warnings.push(`Duplicate names (kept as separate entries): ${dups.slice(0, 5).join(', ')}${dups.length > 5 ? '…' : ''}`);
+    if (dups.length) warnings.push(t('duplicates', dups.slice(0, 5).join(', ') + (dups.length > 5 ? '…' : '')));
     return { names, warnings };
   }
 
@@ -94,7 +95,7 @@
   function parsePrizes(text, cfg) {
     const rows = parse(text);
     const warnings = [];
-    if (!rows.length) throw new Error('The prizes file is empty.');
+    if (!rows.length) throw new Error(t('prizesEmpty'));
     const aliases = cfg.csv.prizeColumns;
     const header = rows[0].map(norm);
     const find = (key) => header.findIndex((h) => aliases[key].map(norm).includes(h));
@@ -107,17 +108,17 @@
       let rank = parseInt(String(rawRank).replace(/[^\d-]/g, ''), 10);
       if (!Number.isFinite(rank)) {
         rank = i + 1;
-        warnings.push(`Row ${i + 2}: missing/invalid number, using ${rank}.`);
+        warnings.push(t('badRank', i + 2, rank));
       }
       return {
         id: 'p' + i,
         rank,
-        name: (idx.name >= 0 ? r[idx.name] : '') || `Prize ${rank}`,
+        name: (idx.name >= 0 ? r[idx.name] : '') || t('defaultPrizeName', rank),
         image: idx.image >= 0 ? r[idx.image] || '' : '',
         description: idx.description >= 0 ? r[idx.description] || '' : '',
       };
     });
-    if (!prizes.length) throw new Error('No prizes found in the prizes file.');
+    if (!prizes.length) throw new Error(t('noPrizes'));
     prizes.sort((a, b) => a.rank - b.rank);
     return { prizes, warnings };
   }

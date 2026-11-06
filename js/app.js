@@ -3,12 +3,13 @@
   'use strict';
   const L = window.Lottery;
   const cfg = window.LOTTERY_CONFIG;
-  const T = cfg.text;
+  const T = L.i18n.T;   // T.key -> text in the current language
+  const t = L.i18n.t;   // t('key', ...args)
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   const prefs = Object.assign(
-    { style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder },
+    { style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language },
     L.store.loadPrefs(),
   );
 
@@ -18,6 +19,7 @@
   let wheelPool = [];    // name indices currently on the wheel (same order as wheel items)
   let spinningPrizeId = null;
   let busy = false;
+  let loadFailure = null; // error from loading the data files (shown in the UI)
 
   /* =====================================================================
    * Data
@@ -28,9 +30,8 @@
     return (h >>> 0).toString(36);
   }
 
-  function encodingWarning(label, decoded) {
-    return decoded.encoding === 'utf-8' ? [] :
-      [`${label} is not valid UTF-8 – read as ${decoded.encoding}. Save it as "CSV UTF-8" to be safe.`];
+  function encodingWarning(labelKey, decoded) {
+    return decoded.encoding === 'utf-8' ? [] : [t('encodingWarning', t(labelKey), decoded.encoding)];
   }
 
   async function loadData() {
@@ -46,7 +47,7 @@
       const [n, p] = await Promise.all([L.csv.fetchText(cfg.data.namesUrl), L.csv.fetchText(cfg.data.prizesUrl)]);
       namesText = n.text;
       prizesText = p.text;
-      warnings.push(...encodingWarning('Names file', n), ...encodingWarning('Prizes file', p));
+      warnings.push(...encodingWarning('namesFile', n), ...encodingWarning('prizesFile', p));
     }
     const N = L.csv.parseNames(namesText, cfg);
     const P = L.csv.parsePrizes(prizesText, cfg);
@@ -241,7 +242,7 @@
   /* =====================================================================
    * Summary
    * ===================================================================== */
-  function openSummary() {
+  function openSummary(quiet) {
     if (!data) return;
     state.showSummary = true;
     save();
@@ -260,7 +261,7 @@
       grid.appendChild(card);
     });
     $('summary').hidden = false;
-    if (cfg.confetti) L.fx.confetti.burst(innerWidth / 2, innerHeight / 3, 220);
+    if (cfg.confetti && !quiet) L.fx.confetti.burst(innerWidth / 2, innerHeight / 3, 220);
   }
   function closeSummary() {
     state.showSummary = false;
@@ -268,7 +269,7 @@
     $('summary').hidden = true;
   }
   function exportCsv() {
-    const rows = [['rank', 'prize', 'winner']];
+    const rows = [T.csvHeader];
     data.prizes.slice().sort((a, b) => a.rank - b.rank).forEach((p) => {
       const r = state.results[p.id];
       rows.push([p.rank, p.name, r ? r.name || '' : '']);
@@ -276,7 +277,7 @@
     const blob = new Blob([L.csv.stringify(rows, cfg.csv.exportDelimiter)], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'lottery-results.csv';
+    a.download = T.csvFileName;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
@@ -287,7 +288,7 @@
   function confirmDialog(text, okLabel) {
     const dlg = $('confirm-dialog');
     $('confirm-text').textContent = text;
-    $('confirm-ok').textContent = okLabel || 'Yes, reset';
+    $('confirm-ok').textContent = okLabel || T.yesReset;
     dlg.returnValue = '';
     dlg.showModal();
     return new Promise((resolve) => dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true }));
@@ -304,9 +305,9 @@
   /* =====================================================================
    * Settings dialog
    * ===================================================================== */
-  function openSettings() {
+  function fillSettings() {
     $('data-status').textContent = data
-      ? `${data.source === 'demo' ? 'Demo data' : 'Uploaded data'}: ${data.names.length} names, ${data.prizes.length} prizes.`
+      ? T.dataStatus(data.source, data.names.length, data.prizes.length)
       : T.loadError;
     const warn = $('data-warnings');
     warn.innerHTML = '';
@@ -316,13 +317,15 @@
       warn.appendChild(li);
     });
     $('opt-style').value = prefs.style;
-    $('opt-theme').value = document.documentElement.dataset.theme;
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
     const locked = !!(state && anyResults());
     $('opt-order').disabled = locked;
     $('order-locked').hidden = !locked;
-    $('load-error').textContent = '';
+  }
+  function openSettings() {
+    fillSettings();
+    $('load-error').textContent = loadFailure ? loadFailureText() : '';
     $('settings-dialog').showModal();
   }
 
@@ -333,17 +336,17 @@
       const nf = $('file-names').files[0];
       const pf = $('file-prizes').files[0];
       const imgs = [...$('file-images').files];
-      if (!nf && !pf && !imgs.length) throw new Error('Choose at least one file.');
+      if (!nf && !pf && !imgs.length) throw new Error(T.chooseAnyFile);
       const warnings = [];
       let namesText = data && data.namesText, prizesText = data && data.prizesText;
-      if (nf) { const d = await L.csv.readFile(nf); namesText = d.text; warnings.push(...encodingWarning('Names file', d)); }
-      if (pf) { const d = await L.csv.readFile(pf); prizesText = d.text; warnings.push(...encodingWarning('Prizes file', d)); }
-      if (!namesText) throw new Error('Please choose a names CSV.');
-      if (!prizesText) throw new Error('Please choose a prizes CSV.');
+      if (nf) { const d = await L.csv.readFile(nf); namesText = d.text; warnings.push(...encodingWarning('namesFile', d)); }
+      if (pf) { const d = await L.csv.readFile(pf); prizesText = d.text; warnings.push(...encodingWarning('prizesFile', d)); }
+      if (!namesText) throw new Error(T.chooseNames);
+      if (!prizesText) throw new Error(T.choosePrizes);
       L.csv.parseNames(namesText, cfg); // validate (throws with a readable message)
       L.csv.parsePrizes(prizesText, cfg);
       const images = imgs.length ? imgs : (data && data.source === 'upload' ? data.images : []);
-      if (state && anyResults() && !(await confirmDialog('Loading new data resets the lottery. Continue?', 'Load & reset'))) return;
+      if (state && anyResults() && !(await confirmDialog(T.loadResetQuestion, T.loadResetOk))) return;
       await L.store.setUpload({ namesText, prizesText, images, warnings });
       L.store.clearState();
       location.reload();
@@ -353,7 +356,7 @@
   }
 
   async function restoreDemo() {
-    if (state && anyResults() && !(await confirmDialog('Switch back to the demo data? This resets the lottery.', 'Switch & reset'))) return;
+    if (state && anyResults() && !(await confirmDialog(T.demoResetQuestion, T.demoResetOk))) return;
     await L.store.clearUpload();
     L.store.clearState();
     location.reload();
@@ -362,17 +365,80 @@
   /* =====================================================================
    * Misc UI
    * ===================================================================== */
-  /** Switch theme: CSS is scoped by <html data-theme>, the canvas re-reads the CSS variables. */
+  /**
+   * Switch theme: swap the theme stylesheet (only the active one is loaded),
+   * set the theme's logo, and let the wheel canvas re-read the CSS variables.
+   */
   function applyTheme(name) {
     if (!cfg.themes[name]) name = cfg.theme;
     document.documentElement.dataset.theme = name;
-    const t = cfg.themes[name] || {};
-    const logo = 'logoUrl' in t ? t.logoUrl : cfg.logoUrl;
+    const th = cfg.themes[name] || {};
+    const logo = 'logoUrl' in th ? th.logoUrl : cfg.logoUrl;
     ['logo', 'summary-logo'].forEach((id) => {
       $(id).hidden = !logo;
       if (logo) $(id).src = logo; else $(id).removeAttribute('src');
     });
-    L.theme.read();
+    $('theme-select').value = name;
+    const href = window.lotteryThemeHref(name);
+    const old = $('theme-css');
+    if (old && old.getAttribute('href') === href) { L.theme.read(); return; }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.onload = link.onerror = () => {
+      if (old) old.remove();
+      link.id = 'theme-css';
+      L.theme.read();
+    };
+    if (old) old.after(link); else document.head.appendChild(link);
+  }
+
+  const themeLabel = (name) => {
+    const l = (cfg.themes[name] || {}).label;
+    return (l && typeof l === 'object' ? l[L.i18n.lang] || l.en : l) || name;
+  };
+
+  /** Switch UI language and re-render everything that shows text. */
+  function applyLanguage(code) {
+    const langs = L.i18n.languages();
+    if (!langs.includes(code)) code = langs.includes(cfg.language) ? cfg.language : langs[0];
+    L.i18n.set(code);
+    L.i18n.applyStatic();
+    document.title = T.title;
+    $('btn-lang').innerHTML = langs
+      .map((l) => `<span class="${l === code ? 'active' : ''}">${l.toUpperCase()}</span>`).join('');
+    $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${t('style_' + s)}</option>`).join('');
+    $('opt-style').value = prefs.style;
+    const current = document.documentElement.dataset.theme;
+    $('theme-select').innerHTML = Object.keys(cfg.themes).map((k) => `<option value="${k}">${themeLabel(k)}</option>`).join('');
+    $('theme-select').value = current;
+    if (data && state) {
+      render();
+      if (!$('summary').hidden) openSummary(true);
+    } else if (loadFailure) showLoadFailure();
+    if ($('settings-dialog').open) {
+      fillSettings();
+      if (loadFailure) $('load-error').textContent = loadFailureText();
+    }
+  }
+  function nextLanguage() {
+    const langs = L.i18n.languages();
+    prefs.lang = langs[(langs.indexOf(L.i18n.lang) + 1) % langs.length];
+    L.store.savePrefs(prefs);
+    dropUrlParam('lang');
+    applyLanguage(prefs.lang);
+  }
+  function dropUrlParam(name) {
+    const url = new URL(location.href);
+    if (url.searchParams.has(name)) { url.searchParams.delete(name); history.replaceState(null, '', url); }
+  }
+
+  const loadFailureText = () => (location.protocol === 'file:' ? T.fileProtocolError : loadFailure.message);
+  function showLoadFailure() {
+    $('prize-name').textContent = T.loadError;
+    $('prize-rank').textContent = '';
+    $('main-btn').textContent = T.spin;
+    $('main-btn').disabled = true;
   }
 
   function updateSoundBtn() {
@@ -401,13 +467,14 @@
     $('btn-settings').addEventListener('click', openSettings);
     $('btn-load-files').addEventListener('click', loadFiles);
     $('btn-demo-data').addEventListener('click', restoreDemo);
-    $('opt-theme').addEventListener('change', (e) => {
+    $('theme-select').addEventListener('change', (e) => {
       prefs.theme = e.target.value;
       L.store.savePrefs(prefs);
-      const url = new URL(location.href);
-      if (url.searchParams.has('theme')) { url.searchParams.delete('theme'); history.replaceState(null, '', url); }
+      dropUrlParam('theme');
       applyTheme(prefs.theme);
+      e.target.blur(); // so Space/Enter go back to driving the lottery
     });
+    $('btn-lang').addEventListener('click', nextLanguage);
     $('opt-style').addEventListener('change', (e) => {
       prefs.style = e.target.value;
       L.store.savePrefs(prefs);
@@ -436,6 +503,7 @@
         if ($('summary').hidden) mainAction();
       } else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
       else if (e.key === 'm' || e.key === 'M') toggleSound();
+      else if (e.key === 'l' || e.key === 'L') nextLanguage();
       else if (e.key === 'Escape' && !$('summary').hidden) closeSummary();
     });
   }
@@ -444,14 +512,9 @@
    * Boot
    * ===================================================================== */
   async function init() {
-    document.title = cfg.title;
-    $('title').textContent = cfg.title;
-    $('subtitle').textContent = cfg.subtitle || '';
-    document.querySelectorAll('[data-text]').forEach((el) => { el.textContent = T[el.dataset.text]; });
-    $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${s}</option>`).join('');
-    $('opt-theme').innerHTML = Object.entries(cfg.themes)
-      .map(([k, t]) => `<option value="${k}">${t.label || k}</option>`).join('');
-    applyTheme(document.documentElement.dataset.theme); // set early by the inline script in <head>
+    const urlLang = new URLSearchParams(location.search).get('lang');
+    applyLanguage(L.i18n.languages().includes(urlLang) ? urlLang : prefs.lang);
+    applyTheme(document.documentElement.dataset.theme); // chosen & loaded early by the inline script in <head>
 
     L.fx.confetti.init($('confetti'));
     wheel = new L.Wheel($('wheel'), Object.assign({}, cfg.wheel, { style: prefs.style }));
@@ -466,15 +529,10 @@
       data = await loadData();
     } catch (e) {
       console.error(e);
+      loadFailure = e;
       document.body.classList.add('load-failed');
-      $('prize-name').textContent = T.loadError;
-      $('prize-rank').textContent = '';
-      $('main-btn').textContent = T.spin;
-      $('main-btn').disabled = true;
+      showLoadFailure();
       openSettings();
-      $('load-error').textContent = location.protocol === 'file:'
-        ? 'The page was opened from disk, so the browser blocks reading data/*.csv. Upload the files here (or run a local web server).'
-        : e.message;
       return;
     }
     if (data.warnings.length) console.warn('Data warnings:', data.warnings);

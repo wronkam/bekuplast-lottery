@@ -1,0 +1,81 @@
+/* =====================================================================
+ *  THEME TEMPLATE – copy this folder to themes/<your-theme>/ to start.
+ *
+ *  A theme is a folder:   themes/<name>/theme.css   (+ any assets, e.g. logo.png)
+ *  and one entry in js/config.js -> themes:
+ *      <name>: { label: 'My theme', logoUrl: 'themes/<name>/logo.png' },
+ *  That's all: it then appears in the "Style" drop-down in the top bar,
+ *  and can be opened directly with ?theme=<name>.
+ *
+ *  Only the active theme's file is loaded. The base styles (css/styles.css)
+ *  live in a lower cascade layer, so ANY rule in this file wins over them –
+ *  no special selectors or !important needed.
+ *
+ *  Structure (keep the same order in every theme):
+ *    1. Fonts      – optional @import (must be the first rule in the file)
+ *    2. Variables  – fill in ALL of them (they drive the layout AND the wheel)
+ *    3. Overrides  – optional component tweaks
+ * ===================================================================== */
+
+/* ---------- 1. Fonts (optional) ---------- */
+/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"); */
+
+/* ---------- 2. Variables ---------- */
+:root {
+  /* page & surfaces */
+  --page-bg: #f4f6fb;               /* any CSS background: colour or gradient */
+  --surface: #ffffff;               /* panels, cards, buttons */
+  --border: #dfe3ec;
+  --text: #1f2633;
+  --muted: #6b7385;
+  --topbar-bg: #ffffff;
+  --topbar-border: #dfe3ec;
+  --badge-bg: #eef1f7;              /* prize number badges in the list */
+  --dialog-bg: #ffffff;
+  --backdrop: rgba(20, 25, 40, 0.5);
+
+  /* accent (pointers, highlights, current prize, winner) */
+  --accent: #3366cc;
+  --accent-strong: #234a99;         /* accent used for text on light/dark backgrounds */
+  --accent-contrast: #ffffff;       /* text drawn ON the accent colour */
+  --accent-soft: #e6eefb;           /* light accent background (winner box, current row) */
+  --danger: #c0392b;
+  --danger-contrast: #ffffff;
+
+  /* typography & shape */
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --heading-tracking: 0;            /* letter-spacing of headings and names */
+  --radius: 8px;                    /* panels & cards */
+  --btn-radius: 8px;                /* buttons; 999px = pill */
+
+  /* main (Spin) button */
+  --main-btn-bg: var(--accent);
+  --main-btn-bg-hover: var(--accent-strong);
+  --main-btn-color: var(--accent-contrast);
+  --main-btn-shadow: none;
+
+  /* wheel canvas */
+  --wheel-bg: #e6e9f0;              /* drum: top & bottom */
+  --wheel-bg-2: #ffffff;            /* drum: centre */
+  --wheel-shade: rgba(244, 246, 251, 0.9); /* drum: fade at top & bottom */
+  --wheel-radius: 8;                /* drum corner radius (number, px) */
+  --wheel-rim: #1f2633;             /* pie: outer ring */
+  --wheel-hub: #1f2633;             /* pie: centre */
+  --palette: #3366cc, #f2a541, #2bb3a3, #8e5cd9, #e05d5d, #5aa9e6, #1f2633, #9fb7e8; /* slices (few names) & confetti */
+  /* pie with many names: hue sweep  hsl(start + span * t, sat, light/light-alt) */
+  --wheel-hue-start: 200;
+  --wheel-hue-span: 80;
+  --wheel-hue-mirror: 1;            /* 1 = go there and back (seamless), 0 = straight sweep */
+  --wheel-sat: 55%;
+  --wheel-light: 55%;
+  --wheel-light-alt: 49%;           /* every other slice, for texture */
+
+  color-scheme: light;              /* light | dark – native form controls follow it */
+}
+
+/* ---------- 3. Component overrides (optional) ----------
+ * Useful hooks: .topbar .panel .prize-card .prize-image .tag .winner-slot(.has-winner)
+ * .results-list li(.current/.done/.upcoming) .btn .btn-main .icon-btn .toolbar-select
+ * .summary-card(.first) .flying-name .dialog   body[data-wheel="drum"|"pie"]
+ */
+/* .tag { border: 1px solid var(--border); padding: 0.4em 0.9em; border-radius: var(--btn-radius); } */

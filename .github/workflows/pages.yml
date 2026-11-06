@@ -28,7 +28,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp -r index.html css js data images _site/
+          cp -r index.html css js data images themes _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

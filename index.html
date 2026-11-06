@@ -1,27 +1,22 @@
 <!doctype html>
-<html lang="en" data-theme="default">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prize Lottery</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Themes: one file per theme, all scoped by <html data-theme="...">. Add a line here for a new theme. -->
-  <link rel="stylesheet" href="css/themes/default.css">
-  <link rel="stylesheet" href="css/themes/bekuplast.css">
   <script src="js/config.js"></script>
   <script>
-    // Apply the theme before first paint: ?theme=… in the URL > saved choice > config default.
+    // Load the active theme before first paint: ?theme=… in the URL > saved choice > config default.
+    // Only that theme's stylesheet is loaded; switching later swaps it (see applyTheme in js/app.js).
     (function () {
-      var cfg = window.LOTTERY_CONFIG, theme = cfg.theme;
-      try { theme = (JSON.parse(localStorage.getItem(cfg.storageKey + ':prefs')) || {}).theme || theme; } catch (e) {}
-      var q = new URLSearchParams(location.search).get('theme');
-      if (q && cfg.themes[q]) theme = q;
-      if (!cfg.themes[theme]) theme = cfg.theme;
+      var cfg = window.LOTTERY_CONFIG, prefs = {};
+      try { prefs = JSON.parse(localStorage.getItem(cfg.storageKey + ':prefs')) || {}; } catch (e) {}
+      var q = new URLSearchParams(location.search);
+      var theme = [q.get('theme'), prefs.theme, cfg.theme].filter(function (t) { return t && cfg.themes[t]; })[0];
       document.documentElement.dataset.theme = theme;
+      document.write('<link rel="stylesheet" id="theme-css" href="' + window.lotteryThemeHref(theme) + '">');
     })();
   </script>
 </head>
@@ -32,16 +27,18 @@
       <div class="brand">
         <img class="logo" id="logo" alt="" hidden>
         <div>
-          <h1 id="title"></h1>
-          <p id="subtitle"></p>
+          <h1 data-i18n="title"></h1>
+          <p data-i18n="subtitle"></p>
         </div>
       </div>
       <div class="progress" id="progress"></div>
       <nav class="toolbar">
-        <button class="icon-btn" id="btn-sound" title="Sound on/off (M)" aria-label="Toggle sound"></button>
-        <button class="icon-btn" id="btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>
-        <button class="icon-btn" id="btn-settings" title="Data &amp; settings" aria-label="Settings">⚙</button>
-        <button class="btn btn-ghost" id="btn-reset" title="Reset the lottery">Reset</button>
+        <select class="toolbar-select" id="theme-select" data-i18n-title="themeTip"></select>
+        <button class="btn lang-switch" id="btn-lang" data-i18n-title="languageTip"></button>
+        <button class="icon-btn" id="btn-sound" data-i18n-title="soundTip"></button>
+        <button class="icon-btn" id="btn-fullscreen" data-i18n-title="fullscreenTip">⛶</button>
+        <button class="icon-btn" id="btn-settings" data-i18n-title="settingsTip">⚙</button>
+        <button class="btn btn-ghost" id="btn-reset" data-i18n="reset" data-i18n-title="resetTip"></button>
       </nav>
     </header>
 
@@ -55,7 +52,7 @@
           <p class="prize-desc" id="prize-desc"></p>
         </div>
         <div class="winner-slot" id="winner-slot">
-          <span class="winner-label" data-text="winnerLabel"></span>
+          <span class="winner-label" data-i18n="winnerLabel"></span>
           <span class="winner-name" id="winner-name"></span>
         </div>
       </section>
@@ -68,7 +65,7 @@
       </section>
 
       <aside class="panel results-panel">
-        <h3 class="tag" data-text="prizesHeading"></h3>
+        <h3 class="tag" data-i18n="prizesHeading"></h3>
         <ol class="results-list" id="results-list"></ol>
       </aside>
     </main>
@@ -78,14 +75,14 @@
   <section class="summary" id="summary" hidden>
     <div class="summary-inner">
       <img class="summary-logo" id="summary-logo" alt="" hidden>
-      <span class="tag" data-text="summaryTag"></span>
-      <h2 data-text="summaryTitle"></h2>
+      <span class="tag" data-i18n="summaryTag"></span>
+      <h2 data-i18n="summaryTitle"></h2>
       <div class="summary-grid" id="summary-grid"></div>
       <div class="summary-actions">
-        <button class="btn" id="btn-export">Download CSV</button>
-        <button class="btn" id="btn-print">Print</button>
-        <button class="btn btn-ghost" id="btn-summary-close">Back to stage</button>
-        <button class="btn btn-danger" id="btn-summary-reset">Reset lottery</button>
+        <button class="btn" id="btn-export" data-i18n="downloadCsv"></button>
+        <button class="btn" id="btn-print" data-i18n="print"></button>
+        <button class="btn btn-ghost" id="btn-summary-close" data-i18n="backToStage"></button>
+        <button class="btn btn-danger" id="btn-summary-reset" data-i18n="resetLottery"></button>
       </div>
     </div>
   </section>
@@ -95,8 +92,8 @@
     <form method="dialog">
       <p id="confirm-text"></p>
       <div class="dialog-actions">
-        <button class="btn btn-ghost" value="cancel">Cancel</button>
-        <button class="btn btn-danger" value="ok" id="confirm-ok">Yes, reset</button>
+        <button class="btn btn-ghost" value="cancel" data-i18n="cancel"></button>
+        <button class="btn btn-danger" value="ok" id="confirm-ok"></button>
       </div>
     </form>
   </dialog>
@@ -104,49 +101,46 @@
   <!-- ============ Settings dialog ============ -->
   <dialog class="dialog dialog-wide" id="settings-dialog">
     <form method="dialog" id="settings-form">
-      <h2>Data &amp; settings</h2>
+      <h2 data-i18n="settingsTitle"></h2>
       <p class="muted" id="data-status"></p>
       <ul class="warnings" id="data-warnings"></ul>
 
       <fieldset>
-        <legend>Load your own data</legend>
-        <label>Names CSV <small>(one name per row, UTF-8)</small>
+        <legend data-i18n="loadOwnData"></legend>
+        <label><span data-i18n="namesCsv"></span> <small data-i18n="namesHint"></small>
           <input type="file" id="file-names" accept=".csv,.txt,text/csv">
         </label>
-        <label>Prizes CSV <small>(columns: rank, name, image)</small>
+        <label><span data-i18n="prizesCsv"></span> <small data-i18n="prizesHint"></small>
           <input type="file" id="file-prizes" accept=".csv,.txt,text/csv">
         </label>
-        <label>Prize images <small>(optional, select many; matched by file name from the image column)</small>
+        <label><span data-i18n="prizeImages"></span> <small data-i18n="imagesHint"></small>
           <input type="file" id="file-images" accept="image/*" multiple>
         </label>
-        <p class="muted">Templates: <a href="data/names.csv" download>names.csv</a> · <a href="data/prizes.csv" download>prizes.csv</a>. Loading new data resets the lottery.</p>
+        <p class="muted"><span data-i18n="templates"></span> <a href="data/names.csv" download>names.csv</a> · <a href="data/prizes.csv" download>prizes.csv</a>. <span data-i18n="loadingResets"></span></p>
         <div class="dialog-actions left">
-          <button class="btn" type="button" id="btn-load-files">Load files</button>
-          <button class="btn btn-ghost" type="button" id="btn-demo-data">Restore demo data</button>
+          <button class="btn" type="button" id="btn-load-files" data-i18n="loadFiles"></button>
+          <button class="btn btn-ghost" type="button" id="btn-demo-data" data-i18n="restoreDemo"></button>
         </div>
         <p class="error" id="load-error"></p>
       </fieldset>
 
       <fieldset>
-        <legend>Options</legend>
-        <label class="row">Theme
-          <select id="opt-theme"></select>
-        </label>
-        <label class="row">Wheel style
+        <legend data-i18n="options"></legend>
+        <label class="row"><span data-i18n="wheelStyle"></span>
           <select id="opt-style"></select>
         </label>
-        <label class="row">Draw order
+        <label class="row"><span data-i18n="drawOrder"></span>
           <select id="opt-order">
-            <option value="asc">Prize #1 first</option>
-            <option value="desc">Highest number first, #1 last</option>
+            <option value="asc" data-i18n="orderAsc"></option>
+            <option value="desc" data-i18n="orderDesc"></option>
           </select>
         </label>
-        <label class="row"><input type="checkbox" id="opt-sound"> Sound</label>
-        <p class="muted" id="order-locked" hidden>Draw order can be changed only before the first draw (or after a reset).</p>
+        <label class="row"><input type="checkbox" id="opt-sound"> <span data-i18n="sound"></span></label>
+        <p class="muted" id="order-locked" data-i18n="orderLocked" hidden></p>
       </fieldset>
 
       <div class="dialog-actions">
-        <button class="btn" value="close">Close</button>
+        <button class="btn" value="close" data-i18n="close"></button>
       </div>
     </form>
   </dialog>
@@ -154,6 +148,7 @@
   <canvas class="confetti" id="confetti"></canvas>
 
   <!-- Plain scripts (no modules) so index.html also works when opened directly from disk. -->
+  <script src="js/i18n.js"></script>
   <script src="js/csv.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/effects.js"></script>

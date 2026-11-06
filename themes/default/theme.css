@@ -1,7 +1,13 @@
 /* =====================================================================
  *  THEME: default – dark navy with gold accents (festive "game show" look)
+ *  Structure: see themes/_template/theme.css
  * ===================================================================== */
-[data-theme="default"] {
+
+/* ---------- 1. Fonts ---------- */
+/* system fonts only */
+
+/* ---------- 2. Variables ---------- */
+:root {
   --page-bg: radial-gradient(1200px 700px at 50% -10%, #1b2456, #0d1330);
   --surface: rgba(255, 255, 255, 0.06);
   --border: rgba(255, 255, 255, 0.12);
@@ -41,16 +47,18 @@
   --wheel-light-alt: 55%;
   color-scheme: dark;
 }
-[data-theme="default"] .btn:hover { background: rgba(255, 255, 255, 0.14); }
-[data-theme="default"] .btn-danger:hover { background: #ff7676; }
-[data-theme="default"] .btn-main:hover { background: var(--main-btn-bg-hover); }
-[data-theme="default"] .icon-btn { color: var(--text); }
-[data-theme="default"] .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
-[data-theme="default"] .progress { color: var(--accent); }
-[data-theme="default"] .prize-image img { filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4)); }
-[data-theme="default"] .results-panel h3 { color: var(--muted); font-size: 0.85rem; }
-[data-theme="default"] .results-list li { background: rgba(255, 255, 255, 0.03); }
-[data-theme="default"] .results-list li.current { background: var(--accent-soft); }
-[data-theme="default"] .summary h2 { color: var(--accent); }
-[data-theme="default"] .summary-card.first { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 200, 61, 0.25); }
-[data-theme="default"] .dialog select { background: #0d1330; }
+
+/* ---------- 3. Component overrides ---------- */
+.btn:hover { background: rgba(255, 255, 255, 0.14); }
+.btn-danger:hover { background: #ff7676; }
+.btn-main:hover { background: var(--main-btn-bg-hover); }
+.icon-btn { color: var(--text); }
+.icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.progress { color: var(--accent); }
+.prize-image img { filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4)); }
+.results-panel h3 { color: var(--muted); font-size: 0.85rem; }
+.results-list li { background: rgba(255, 255, 255, 0.03); }
+.results-list li.current { background: var(--accent-soft); }
+.summary h2 { color: var(--accent); }
+.summary-card.first { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 200, 61, 0.25); }
+.dialog select { background: #0d1330; }

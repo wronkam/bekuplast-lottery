@@ -6,18 +6,26 @@
  * ============================================================
  */
 window.LOTTERY_CONFIG = {
-  /* ---------- Branding ---------- */
-  title: 'Bekuplast Lottery',
-  subtitle: 'Prize draw',
+  /* ---------- Branding ----------
+   * Title & subtitle are translated texts: see `title` / `subtitle` in js/i18n.js. */
   logoUrl: null, // shown next to the title and on the summary (null = no logo); a theme can override it
 
-  /* ---------- Themes ----------
-   * Each theme is a CSS file in css/themes/<name>.css (linked in index.html).
-   * Pick one here, in Settings (⚙), or with ?theme=<name> in the URL. */
+  /* ---------- Language ----------
+   * UI texts live in js/i18n.js (one dictionary per language).
+   * The language button in the top bar switches; ?lang=pl in the URL also works. */
+  language: 'en',
+
+  /* ---------- Themes (the "Style" drop-down in the top bar) ----------
+   * A theme is a folder themes/<name>/ with theme.css (+ assets) – start by copying
+   * themes/_template/. Register it here; the order here is the order in the drop-down.
+   *   label   – name shown in the drop-down (a string, or { en: '…', pl: '…' } per language)
+   *   logoUrl – optional logo for this theme (null/omitted = global logoUrl)
+   *   css     – optional custom stylesheet path (default: themes/<name>/theme.css)
+   * Pick the default here, from the drop-down, or with ?theme=<name> in the URL. */
   theme: 'default',
   themes: {
-    default: { label: 'Default (dark & gold)' },
-    bekuplast: { label: 'bekuplast', logoUrl: 'images/logo.png' },
+    default: { label: { en: 'Classic', pl: 'Klasyczny' } },
+    bekuplast: { label: 'bekuplast', logoUrl: 'themes/bekuplast/logo.png' },
   },
 
   /* ---------- Data sources (relative to index.html, or absolute URLs) ---------- */
@@ -78,28 +86,10 @@ window.LOTTERY_CONFIG = {
     },
     exportDelimiter: ',', // use ';' if your Excel expects semicolons
   },
+};
 
-  /* ---------- Texts (translate here) ---------- */
-  text: {
-    spin: 'Spin!',
-    spinning: 'Drawing…',
-    next: 'Next prize ➜',
-    showNext: 'Show next prize',
-    showSummary: 'Show results 🏆',
-    winnerLabel: 'Winner',
-    noWinner: 'No eligible participants left',
-    pending: '?',
-    prizesHeading: 'Prizes',
-    summaryTag: 'Prize draw',
-    summaryTitle: 'Results',
-    rank: (n) => {
-      const s = ['th', 'st', 'nd', 'rd'];
-      const v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]) + ' prize';
-    },
-    progress: (i, total) => `Prize ${i} of ${total}`,
-    pool: (eligible, total) => `${eligible} of ${total} participants in the draw`,
-    resetQuestion: 'Reset the lottery? All drawn winners will be lost.',
-    loadError: 'Could not load the data files. Open Settings and upload a names CSV and a prizes CSV.',
-  },
+/** Stylesheet path of a theme (used by index.html and js/app.js). */
+window.lotteryThemeHref = function (name) {
+  var t = window.LOTTERY_CONFIG.themes[name] || {};
+  return t.css || 'themes/' + name + '/theme.css';
 };

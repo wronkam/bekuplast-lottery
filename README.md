@@ -174,9 +174,13 @@ js/storage.js         saved progress (localStorage) and uploaded files (IndexedD
 js/effects.js         fair RNG, sound (WebAudio), confetti, flying-name animation, theme colours
 js/wheel.js           the wheel (drum & pie renderers, spin physics)
 js/app.js             lottery flow / state machine and UI rendering
+tests/smoke.js        end-to-end smoke test: `node tests/smoke.js` (needs Playwright)
+AGENTS.md             technical guide for developers / AI agents (architecture, theme standard, testing)
 data/                 demo names.csv & prizes.csv
 images/prizes/        demo prize images
 ```
+
+**Changing the code or adding a theme?** Start with [AGENTS.md](AGENTS.md), which covers how everything fits together, the theme standard, and how to test.
 
 There is no build step and there are no external dependencies. The scripts are plain `<script>` files, so the page also works offline.
 

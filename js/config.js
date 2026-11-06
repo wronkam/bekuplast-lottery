@@ -2,7 +2,8 @@
  * ============================================================
  *  LOTTERY CONFIGURATION
  *  Everything you are likely to want to tweak lives here.
- *  Colours / fonts / sizes live in css/styles.css (":root" block).
+ *  Look & feel lives in themes/<name>/theme.css, UI texts in js/i18n.js.
+ *  Architecture overview for developers / AI agents: AGENTS.md
  * ============================================================
  */
 window.LOTTERY_CONFIG = {
@@ -12,7 +13,7 @@ window.LOTTERY_CONFIG = {
 
   /* ---------- Language ----------
    * UI texts live in js/i18n.js (one dictionary per language).
-   * The language button in the top bar cycles EN → PL → DE; ?lang=de in the URL also works. */
+   * Click EN / PL / DE in the top bar (or press L to cycle); ?lang=de in the URL also works. */
   language: 'en',
 
   /* ---------- Themes (the "Style" drop-down in the top bar) ----------

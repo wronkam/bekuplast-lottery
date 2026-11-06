@@ -139,11 +139,13 @@
     read() {
       const cs = getComputedStyle(document.documentElement);
       const v = (n) => cs.getPropertyValue(n).trim();
+      // Fallbacks keep the canvas working even if a theme forgets a variable or fails to load.
       this.palette = v('--palette').split(',').map((s) => s.trim()).filter(Boolean);
-      this.text = v('--text');
-      this.accent = v('--accent');
-      this.wheelBg = v('--wheel-bg');
-      this.wheelBg2 = v('--wheel-bg-2');
+      if (!this.palette.length) this.palette = ['#3366cc', '#f2a541', '#2bb3a3', '#e05d5d'];
+      this.text = v('--text') || '#333333';
+      this.accent = v('--accent') || '#3366cc';
+      this.wheelBg = v('--wheel-bg') || '#e6e9f0';
+      this.wheelBg2 = v('--wheel-bg-2') || '#ffffff';
       this.wheelRim = v('--wheel-rim') || this.wheelBg2;
       this.wheelHub = v('--wheel-hub') || this.wheelBg;
       const num = (n, d) => (Number.isFinite(parseFloat(v(n))) ? parseFloat(v(n)) : d);
@@ -157,7 +159,7 @@
       this.lightAlt = v('--wheel-light-alt') || this.light;
       this.wheelShade = v('--wheel-shade') || 'rgba(0,0,0,0.5)';
       this.radius = parseFloat(v('--wheel-radius')) || 0;
-      this.font = v('--font');
+      this.font = v('--font') || 'system-ui, sans-serif';
     },
   };
 

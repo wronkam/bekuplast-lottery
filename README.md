@@ -18,14 +18,14 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 4. After the last prize, press **Show results 🏆** to see the summary of all prizes and winners. From there you can **Download CSV**, **Print**, go back, or reset.
 5. **Reset** (top right, or on the summary) clears all results after you confirm.
 
-The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN / PL** button to switch the language. Both choices are remembered in this browser, and switching never affects the draw in progress.
+The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN / PL / DE** button to switch the language (English, Polish, German). Both choices are remembered in this browser, and switching never affects the draw in progress.
 
 | Key | Action |
 | --- | --- |
 | <kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>→</kbd> / <kbd>PageDown</kbd> | Main button (spin / next / results) |
 | <kbd>F</kbd> | Toggle fullscreen |
 | <kbd>M</kbd> | Toggle sound |
-| <kbd>L</kbd> | Switch language (EN ↔ PL) |
+| <kbd>L</kbd> | Switch language (EN → PL → DE) |
 | <kbd>Esc</kbd> | Close the summary |
 
 **Progress is saved in the browser** (localStorage). If the page is refreshed by accident, the draw continues where it stopped. The winner is chosen and saved the moment the spin starts, so refreshing during a spin cannot change the result. Use **Reset** to start over.
@@ -89,7 +89,7 @@ Almost everything is in **`js/config.js`**:
 | Option | What it does |
 | --- | --- |
 | `logoUrl` | Logo in the top bar and on the summary (a theme can set its own) |
-| `language` | Default language (`'en'` or `'pl'`); see [Language](#language) |
+| `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
 | `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
 | `drawOrder` | `'asc'` = start with prize #1; `'desc'` = start with the highest number and finish with the grand prize #1. Also switchable in Settings. |
 | `spinOnNext` | `true`: one press moves to the next prize and spins. `false`: first press shows the prize, second press spins. |
@@ -100,13 +100,13 @@ Almost everything is in **`js/config.js`**:
 
 ### Language
 
-All UI texts, including the title, are in **`js/i18n.js`**, with one dictionary per language (`en`, `pl`). Change any text there. Texts with numbers in them (such as `1st prize` / `1. nagroda` or `Prize 1 of 8`) are small functions.
+All UI texts, including the title, are in **`js/i18n.js`**, with one dictionary per language (`en`, `pl`, `de`). Change any text there. Texts with numbers in them (such as `1st prize` / `1. nagroda` or `Prize 1 of 8`) are small functions.
 
-- Switch with the **EN / PL** button in the top bar or the <kbd>L</kbd> key. The choice is remembered.
-- `?lang=pl` in the URL opens the page in Polish.
+- Switch with the **EN / PL / DE** button in the top bar or the <kbd>L</kbd> key. The choice is remembered.
+- `?lang=pl` or `?lang=de` in the URL opens the page in Polish or German.
 - `language` in `js/config.js` sets the default.
 
-To add a language, copy the `en` block in `js/i18n.js`, give it a new code (e.g. `de`) and translate it. The button then cycles EN → PL → DE. Missing keys fall back to English.
+To add a language, copy the `en` block in `js/i18n.js`, give it a new code (e.g. `cs`) and translate it. The button then includes it automatically. Missing keys fall back to English.
 
 Prize names and descriptions come from your CSV, so they appear as written there.
 
@@ -147,7 +147,7 @@ themes/
 2. Register it in `js/config.js` under `themes`:
    ```js
    themes: {
-     default:   { label: { en: 'Classic', pl: 'Klasyczny' } },
+     default:   { label: { en: 'Classic', pl: 'Klasyczny', de: 'Klassisch' } },
      bekuplast: { label: 'bekuplast', logoUrl: 'themes/bekuplast/logo.png' },
      myTheme:   { label: 'My theme', logoUrl: 'themes/myTheme/logo.png' },  // ← new
    },
@@ -166,7 +166,7 @@ index.html            page layout (stage, summary, dialogs)
 css/styles.css        shared layout & components (driven by CSS variables, in the "base" layer)
 themes/<name>/        one folder per theme: theme.css (+ assets); start from themes/_template/
 js/config.js          all settings: language, themes, flow, wheel, CSV parsing
-js/i18n.js            UI texts in English & Polish (add more languages here)
+js/i18n.js            UI texts in English, Polish & German (add more languages here)
 js/csv.js             UTF-8 CSV reading/parsing, names & prizes loaders, CSV export
 js/storage.js         saved progress (localStorage) and uploaded files (IndexedDB)
 js/effects.js         fair RNG, sound (WebAudio), confetti, flying-name animation, theme colours

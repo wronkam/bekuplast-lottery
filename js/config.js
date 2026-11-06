@@ -12,7 +12,7 @@ window.LOTTERY_CONFIG = {
 
   /* ---------- Language ----------
    * UI texts live in js/i18n.js (one dictionary per language).
-   * The language button in the top bar switches; ?lang=pl in the URL also works. */
+   * The language button in the top bar cycles EN → PL → DE; ?lang=de in the URL also works. */
   language: 'en',
 
   /* ---------- Themes (the "Style" drop-down in the top bar) ----------
@@ -24,7 +24,7 @@ window.LOTTERY_CONFIG = {
    * Pick the default here, from the drop-down, or with ?theme=<name> in the URL. */
   theme: 'default',
   themes: {
-    default: { label: { en: 'Classic', pl: 'Klasyczny' } },
+    default: { label: { en: 'Classic', pl: 'Klasyczny', de: 'Klassisch' } },
     bekuplast: { label: 'bekuplast', logoUrl: 'themes/bekuplast/logo.png' },
   },
 
@@ -76,13 +76,14 @@ window.LOTTERY_CONFIG = {
       'name', 'names', 'full name', 'fullname', 'first name', 'firstname', 'first_name',
       'last name', 'lastname', 'last_name', 'surname', 'participant',
       'imię', 'imie', 'nazwisko', 'imię i nazwisko', 'imie i nazwisko', 'uczestnik',
+      'vorname', 'nachname', 'vollständiger name', 'teilnehmer', 'teilnehmerin',
     ],
     // Accepted header names for each column of the prizes file.
     prizeColumns: {
-      rank: ['rank', 'place', 'number', 'no', 'nr', '#', 'position', 'miejsce', 'numer', 'pozycja', 'kolejność'],
-      name: ['prize', 'name', 'prize name', 'title', 'nagroda', 'nazwa'],
-      image: ['image', 'img', 'picture', 'photo', 'path', 'image path', 'file', 'obraz', 'obrazek', 'zdjęcie', 'zdjecie', 'plik'],
-      description: ['description', 'desc', 'details', 'opis'],
+      rank: ['rank', 'place', 'number', 'no', 'nr', '#', 'position', 'miejsce', 'numer', 'pozycja', 'kolejność', 'platz', 'rang', 'nummer'],
+      name: ['prize', 'name', 'prize name', 'title', 'nagroda', 'nazwa', 'preis', 'gewinn', 'bezeichnung'],
+      image: ['image', 'img', 'picture', 'photo', 'path', 'image path', 'file', 'obraz', 'obrazek', 'zdjęcie', 'zdjecie', 'plik', 'bild', 'foto', 'datei'],
+      description: ['description', 'desc', 'details', 'opis', 'beschreibung'],
     },
     exportDelimiter: ',', // use ';' if your Excel expects semicolons
   },

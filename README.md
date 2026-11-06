@@ -18,7 +18,7 @@ The demo uses mock data: 300 names with Polish and other non-ASCII characters, a
 4. After the last prize, press **Show results 🏆** to see the summary of all prizes and winners. From there you can **Download CSV**, **Print**, go back, or reset.
 5. **Reset** (top right, or on the summary) clears all results after you confirm.
 
-The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN | PL | DE** switch to change the language (English, Polish, German): click a code to pick it. Both choices are remembered in this browser, and switching never affects the draw in progress.
+The top bar also has a **Style** drop-down to switch the look (see [Themes](#themes)) and an **EN | PL | DE** switch to change the language (English, Polish, German): click a code to pick it. Both choices are remembered in this browser, and switching never affects the draw in progress. If the top bar gets too crowded (a narrow screen or longer German labels), the **Style** drop-down moves into **⚙ → Options** automatically and comes back when there is room.
 
 | Key | Action |
 | --- | --- |

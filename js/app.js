@@ -375,9 +375,10 @@
       if (logo) $(id).src = logo; else $(id).removeAttribute('src');
     });
     $('theme-select').value = name;
+    $('opt-theme').value = name;
     const href = window.lotteryThemeHref(name);
     const old = $('theme-css');
-    if (old && old.getAttribute('href') === href) { L.theme.read(); return; }
+    if (old && old.getAttribute('href') === href) { L.theme.read(); fitToolbar(); return; }
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = href;
@@ -385,8 +386,30 @@
       if (old) old.remove();
       link.id = 'theme-css';
       L.theme.read();
+      fitToolbar(); // button sizes & fonts differ between themes
     };
     if (old) old.after(link); else document.head.appendChild(link);
+  }
+
+  /**
+   * If the top bar is too crowded, move the Style drop-down into Settings -> Options.
+   * Measures the toolbar with the drop-down shown, so there is no flip-flopping.
+   */
+  function fitToolbar() {
+    const bar = $('topbar');
+    const tb = bar.querySelector('.toolbar');
+    document.body.classList.remove('compact-toolbar');
+    const cs = getComputedStyle(tb);
+    const gap = parseFloat(cs.columnGap) || 0;
+    const items = [...tb.children].filter((el) => el.offsetParent !== null);
+    const needed = items.reduce((w, el) => w + el.getBoundingClientRect().width, 0) + gap * (items.length - 1);
+    const bcs = getComputedStyle(bar);
+    const inner = bar.clientWidth - parseFloat(bcs.paddingLeft) - parseFloat(bcs.paddingRight);
+    const logo = $('logo');
+    const brandMin = (logo.hidden ? 0 : logo.getBoundingClientRect().width + 32) + 170; // keep room for the title
+    const stacked = getComputedStyle(bar).gridTemplateColumns.split(' ').length === 1; // phone layout
+    const available = stacked ? inner : inner - brandMin - (parseFloat(bcs.columnGap) || 0);
+    document.body.classList.toggle('compact-toolbar', needed > available);
   }
 
   const themeLabel = (name) => {
@@ -406,8 +429,9 @@
     $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${t('style_' + s)}</option>`).join('');
     $('opt-style').value = prefs.style;
     const current = document.documentElement.dataset.theme;
-    $('theme-select').innerHTML = Object.keys(cfg.themes).map((k) => `<option value="${k}">${themeLabel(k)}</option>`).join('');
-    $('theme-select').value = current;
+    const themeOptions = Object.keys(cfg.themes).map((k) => `<option value="${k}">${themeLabel(k)}</option>`).join('');
+    ['theme-select', 'opt-theme'].forEach((id) => { $(id).innerHTML = themeOptions; $(id).value = current; });
+    fitToolbar(); // labels change width with the language
     if (data && state) {
       render();
       if (!$('summary').hidden) openSummary(true);
@@ -466,13 +490,18 @@
     $('btn-settings').addEventListener('click', openSettings);
     $('btn-load-files').addEventListener('click', loadFiles);
     $('btn-demo-data').addEventListener('click', restoreDemo);
-    $('theme-select').addEventListener('change', (e) => {
+    const onThemeChange = (e) => {
       prefs.theme = e.target.value;
       L.store.savePrefs(prefs);
       dropUrlParam('theme');
       applyTheme(prefs.theme);
-      e.target.blur(); // so Space/Enter go back to driving the lottery
-    });
+      if (e.target.id === 'theme-select') e.target.blur(); // so Space/Enter go back to driving the lottery
+    };
+    $('theme-select').addEventListener('change', onThemeChange);
+    $('opt-theme').addEventListener('change', onThemeChange);
+    new ResizeObserver(() => fitToolbar()).observe($('topbar'));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitToolbar);
+    $('logo').addEventListener('load', fitToolbar);
     // Click a language code to pick it directly (clicking the button's padding cycles).
     $('btn-lang').addEventListener('click', (e) => {
       const pick = e.target.closest('[data-lang]');

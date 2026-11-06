@@ -23,7 +23,7 @@
 <body>
   <div class="app">
     <!-- ============ Top bar ============ -->
-    <header class="topbar">
+    <header class="topbar" id="topbar">
       <div class="brand">
         <img class="logo" id="logo" alt="" hidden>
         <div>
@@ -125,6 +125,10 @@
 
       <fieldset>
         <legend data-i18n="options"></legend>
+        <!-- shown only when the top bar is too narrow for the Style drop-down (body.compact-toolbar) -->
+        <label class="row settings-theme-row"><span data-i18n="themeTip"></span>
+          <select id="opt-theme"></select>
+        </label>
         <label class="row"><span data-i18n="wheelStyle"></span>
           <select id="opt-style"></select>
         </label>

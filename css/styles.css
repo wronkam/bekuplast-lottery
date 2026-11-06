@@ -120,6 +120,11 @@ select option { background: var(--dialog-bg); color: var(--text); }
 .lang-switch span:not(.active):hover { color: var(--text); }
 .lang-switch span.active { background: var(--accent); color: var(--accent-contrast); }
 
+/* Not enough room in the top bar -> the Style drop-down moves to Settings -> Options (see fitToolbar in js/app.js) */
+.dialog label.row.settings-theme-row { display: none; }
+.compact-toolbar .dialog label.row.settings-theme-row { display: flex; }
+.compact-toolbar #theme-select { display: none; }
+
 /* Small uppercase label ("1st prize", "Prizes") */
 .tag {
   display: inline-flex;

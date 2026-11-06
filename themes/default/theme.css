@@ -56,7 +56,6 @@
 .btn-main:hover { background: var(--main-btn-bg-hover); }
 .icon-btn { color: var(--text); }
 .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
-.progress { color: var(--accent); }
 .prize-image img { filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4)); }
 .results-panel h3 { color: var(--muted); font-size: 0.85rem; }
 .results-list li { background: rgba(255, 255, 255, 0.03); }

@@ -122,7 +122,6 @@ body::after {
     var(--xmas-red) 0 12px, #fff 12px 24px, var(--xmas-green) 24px 36px, #fff 36px 48px);
 }
 .brand h1::after { content: " 🎄"; }
-.progress { color: var(--xmas-red); }
 
 /* buttons */
 .btn:hover { border-color: var(--xmas-red); color: var(--xmas-red-dark); }

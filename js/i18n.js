@@ -30,7 +30,6 @@ window.LOTTERY_I18N = {
       const v = n % 100;
       return n + (s[(v - 20) % 10] || s[v] || s[0]) + ' prize';
     },
-    progress: (i, total) => `Prize ${i} of ${total}`,
     pool: (eligible, total) => `${eligible} of ${total} participants in the draw`,
 
     // top bar
@@ -121,7 +120,6 @@ window.LOTTERY_I18N = {
     pending: '?',
     prizesHeading: 'Nagrody',
     rank: (n) => `${n}. nagroda`,
-    progress: (i, total) => `Nagroda ${i} z ${total}`,
     pool: (eligible, total) => `W losowaniu: ${eligible} z ${total} uczestników`,
 
     soundTip: 'Dźwięk wł./wył. (M)',
@@ -207,7 +205,6 @@ window.LOTTERY_I18N = {
     pending: '?',
     prizesHeading: 'Preise',
     rank: (n) => `${n}. Preis`,
-    progress: (i, total) => `Preis ${i} von ${total}`,
     pool: (eligible, total) => `${eligible} von ${total} Teilnehmenden in der Ziehung`,
 
     soundTip: 'Ton an/aus (M)',

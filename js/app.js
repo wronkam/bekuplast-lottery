@@ -185,8 +185,6 @@
     const prize = currentPrize();
     const res = resultOf(prize.id);
 
-    $('progress').textContent = T.progress(state.current + 1, state.order.length);
-
     // prize card
     $('prize-rank').textContent = T.rank(prize.rank);
     $('prize-name').textContent = prize.name;

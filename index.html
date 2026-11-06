@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="default">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Themes: one file per theme, all scoped by <html data-theme="...">. Add a line here for a new theme. -->
+  <link rel="stylesheet" href="css/themes/default.css">
+  <link rel="stylesheet" href="css/themes/bekuplast.css">
+  <script src="js/config.js"></script>
+  <script>
+    // Apply the theme before first paint: ?theme=… in the URL > saved choice > config default.
+    (function () {
+      var cfg = window.LOTTERY_CONFIG, theme = cfg.theme;
+      try { theme = (JSON.parse(localStorage.getItem(cfg.storageKey + ':prefs')) || {}).theme || theme; } catch (e) {}
+      var q = new URLSearchParams(location.search).get('theme');
+      if (q && cfg.themes[q]) theme = q;
+      if (!cfg.themes[theme]) theme = cfg.theme;
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
 </head>
 <body>
   <div class="app">
@@ -114,6 +129,9 @@
 
       <fieldset>
         <legend>Options</legend>
+        <label class="row">Theme
+          <select id="opt-theme"></select>
+        </label>
         <label class="row">Wheel style
           <select id="opt-style"></select>
         </label>
@@ -136,7 +154,6 @@
   <canvas class="confetti" id="confetti"></canvas>
 
   <!-- Plain scripts (no modules) so index.html also works when opened directly from disk. -->
-  <script src="js/config.js"></script>
   <script src="js/csv.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/effects.js"></script>

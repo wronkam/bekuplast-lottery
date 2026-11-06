@@ -1,0 +1,116 @@
+/* =====================================================================
+ *  THEME: bekuplast – matches www.bekuplast.pl
+ *  light grey + white, brand green, Manrope, bordered uppercase tags
+ * ===================================================================== */
+[data-theme="bekuplast"] {
+  --brand: #78b146;             /* bekuplast green */
+  --brand-dark: #5f9233;
+  --page-bg: #f3f3f3;
+  --surface: #ffffff;
+  --border: #dedede;
+  --text: #424242;
+  --muted: #7a7a7a;
+  --accent: var(--brand);
+  --accent-strong: var(--brand-dark);
+  --accent-contrast: #ffffff;
+  --accent-soft: #eef5e7;
+  --danger: #c0392b;
+  --font: "Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --heading-tracking: -0.02em;
+  --radius: 6px;
+  --btn-radius: 6px;
+  --main-btn-bg: var(--brand);
+  --main-btn-bg-hover: var(--brand-dark);
+  --main-btn-shadow: none;
+  --topbar-bg: #ffffff;
+  --topbar-border: #dedede;
+  --badge-bg: #f3f3f3;
+  --dialog-bg: #ffffff;
+  --backdrop: rgba(66, 66, 66, 0.45);
+  /* wheel canvas */
+  --wheel-bg: #e4e4e4;
+  --wheel-bg-2: #ffffff;
+  --wheel-rim: #424242;
+  --wheel-hub: #424242;
+  --wheel-shade: rgba(243, 243, 243, 0.9);
+  --wheel-radius: 6;
+  --palette: #78b146, #2f4f9e, #8a8a8a, #a63a32, #5f9233, #4a6fc4, #424242, #9cc977;
+  /* pie with many names: green -> blue -> green sweep */
+  --wheel-hue-start: 95;
+  --wheel-hue-span: 130;
+  --wheel-hue-mirror: 1;
+  --wheel-sat: 42%;
+  --wheel-light: 52%;
+  --wheel-light-alt: 46%;
+  color-scheme: light;
+}
+
+/* buttons */
+[data-theme="bekuplast"] .btn:hover { border-color: var(--brand); color: var(--brand-dark); }
+[data-theme="bekuplast"] .btn-danger:hover { background: #a93226; border-color: #a93226; color: #fff; }
+[data-theme="bekuplast"] .btn-main { font-weight: 700; }
+[data-theme="bekuplast"] .btn-main:hover { color: #fff; }
+[data-theme="bekuplast"] .icon-btn:hover { border-color: var(--brand); }
+
+/* "BEKUPLAST ·" style tags */
+[data-theme="bekuplast"] .tag {
+  padding: 0.45em 1em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 700;
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  letter-spacing: 0.14em;
+}
+[data-theme="bekuplast"] .tag::after { content: ""; width: 4px; height: 4px; background: currentColor; }
+
+/* prize card: left aligned, image on grey with a green corner block */
+[data-theme="bekuplast"] .prize-card { align-items: flex-start; text-align: left; }
+[data-theme="bekuplast"] .prize-image { background: var(--page-bg); }
+[data-theme="bekuplast"] .prize-image::before {
+  content: "";
+  position: absolute;
+  left: -10px; top: -10px;
+  width: 22%; aspect-ratio: 1;
+  max-width: 90px;
+  background: var(--brand);
+}
+[data-theme="bekuplast"] .prize-image img { max-width: calc(100% - 24px); max-height: calc(100% - 24px); }
+
+/* winner slot */
+[data-theme="bekuplast"] .winner-slot { border: 1px dashed #c8c8c8; text-align: left; }
+[data-theme="bekuplast"] .winner-name { font-weight: 700; color: #b5b5b5; }
+[data-theme="bekuplast"] .winner-slot.has-winner { border: 1px solid var(--brand); border-left-width: 6px; }
+[data-theme="bekuplast"] .winner-slot.has-winner .winner-label { color: var(--brand-dark); }
+[data-theme="bekuplast"] .winner-slot.has-winner .winner-name { color: var(--text); }
+
+/* wheel */
+[data-theme="bekuplast"] body[data-wheel="drum"] .wheel-wrap { border: 1px solid var(--border); border-radius: var(--radius); }
+[data-theme="bekuplast"] .readout { color: var(--text); }
+
+/* results list: separators + green bar on the current prize */
+[data-theme="bekuplast"] .results-list { gap: 0; }
+[data-theme="bekuplast"] .results-list li {
+  padding: 10px 6px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid transparent;
+  border-radius: 0;
+}
+[data-theme="bekuplast"] .results-list li:last-child { border-bottom: none; }
+[data-theme="bekuplast"] .results-list li.current { border-left-color: var(--brand); }
+[data-theme="bekuplast"] .badge { color: var(--text); }
+
+/* summary */
+[data-theme="bekuplast"] .summary-card { text-align: left; }
+[data-theme="bekuplast"] .summary-card.first { border-color: var(--brand); border-top-width: 6px; }
+[data-theme="bekuplast"] .s-img { background: var(--page-bg); }
+[data-theme="bekuplast"] .s-img img { max-width: calc(100% - 16px); max-height: calc(100% - 16px); border-radius: 4px; }
+[data-theme="bekuplast"] .s-prize { color: var(--muted); }
+[data-theme="bekuplast"] .s-winner { color: var(--text); }
+[data-theme="bekuplast"] .summary h2 { font-weight: 700; }
+[data-theme="bekuplast"] .flying-name { box-shadow: 0 12px 40px rgba(66, 66, 66, 0.25); }
+
+/* dialogs */
+[data-theme="bekuplast"] .dialog legend { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; }
+[data-theme="bekuplast"] .warnings { color: #9a6b00; }

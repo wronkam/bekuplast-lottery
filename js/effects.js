@@ -144,7 +144,15 @@
       this.accent = v('--accent');
       this.wheelBg = v('--wheel-bg');
       this.wheelBg2 = v('--wheel-bg-2');
-      this.wheelRim = v('--wheel-rim') || this.text;
+      this.wheelRim = v('--wheel-rim') || this.wheelBg2;
+      this.wheelHub = v('--wheel-hub') || this.wheelBg;
+      const num = (n, d) => (Number.isFinite(parseFloat(v(n))) ? parseFloat(v(n)) : d);
+      this.hueStart = num('--wheel-hue-start', 0);
+      this.hueSpan = num('--wheel-hue-span', 360);
+      this.hueMirror = num('--wheel-hue-mirror', 0) === 1;
+      this.sat = v('--wheel-sat') || '70%';
+      this.light = v('--wheel-light') || '55%';
+      this.lightAlt = v('--wheel-light-alt') || this.light;
       this.wheelShade = v('--wheel-shade') || 'rgba(0,0,0,0.5)';
       this.radius = parseFloat(v('--wheel-radius')) || 0;
       this.font = v('--font');

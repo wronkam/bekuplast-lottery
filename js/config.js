@@ -7,9 +7,18 @@
  */
 window.LOTTERY_CONFIG = {
   /* ---------- Branding ---------- */
-  title: 'Prize Lottery',
+  title: 'Bekuplast Lottery',
   subtitle: 'Prize draw',
-  logoUrl: 'images/logo.png', // shown next to the title and on the summary (null = no logo)
+  logoUrl: null, // shown next to the title and on the summary (null = no logo); a theme can override it
+
+  /* ---------- Themes ----------
+   * Each theme is a CSS file in css/themes/<name>.css (linked in index.html).
+   * Pick one here, in Settings (⚙), or with ?theme=<name> in the URL. */
+  theme: 'default',
+  themes: {
+    default: { label: 'Default (dark & gold)' },
+    bekuplast: { label: 'bekuplast', logoUrl: 'images/logo.png' },
+  },
 
   /* ---------- Data sources (relative to index.html, or absolute URLs) ---------- */
   data: {

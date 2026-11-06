@@ -316,6 +316,7 @@
       warn.appendChild(li);
     });
     $('opt-style').value = prefs.style;
+    $('opt-theme').value = document.documentElement.dataset.theme;
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
     const locked = !!(state && anyResults());
@@ -361,6 +362,19 @@
   /* =====================================================================
    * Misc UI
    * ===================================================================== */
+  /** Switch theme: CSS is scoped by <html data-theme>, the canvas re-reads the CSS variables. */
+  function applyTheme(name) {
+    if (!cfg.themes[name]) name = cfg.theme;
+    document.documentElement.dataset.theme = name;
+    const t = cfg.themes[name] || {};
+    const logo = 'logoUrl' in t ? t.logoUrl : cfg.logoUrl;
+    ['logo', 'summary-logo'].forEach((id) => {
+      $(id).hidden = !logo;
+      if (logo) $(id).src = logo; else $(id).removeAttribute('src');
+    });
+    L.theme.read();
+  }
+
   function updateSoundBtn() {
     $('btn-sound').textContent = prefs.sound ? '🔊' : '🔇';
     L.fx.sound.enabled = prefs.sound;
@@ -387,6 +401,13 @@
     $('btn-settings').addEventListener('click', openSettings);
     $('btn-load-files').addEventListener('click', loadFiles);
     $('btn-demo-data').addEventListener('click', restoreDemo);
+    $('opt-theme').addEventListener('change', (e) => {
+      prefs.theme = e.target.value;
+      L.store.savePrefs(prefs);
+      const url = new URL(location.href);
+      if (url.searchParams.has('theme')) { url.searchParams.delete('theme'); history.replaceState(null, '', url); }
+      applyTheme(prefs.theme);
+    });
     $('opt-style').addEventListener('change', (e) => {
       prefs.style = e.target.value;
       L.store.savePrefs(prefs);
@@ -426,13 +447,12 @@
     document.title = cfg.title;
     $('title').textContent = cfg.title;
     $('subtitle').textContent = cfg.subtitle || '';
-    if (cfg.logoUrl) {
-      ['logo', 'summary-logo'].forEach((id) => { $(id).src = cfg.logoUrl; $(id).hidden = false; });
-    }
     document.querySelectorAll('[data-text]').forEach((el) => { el.textContent = T[el.dataset.text]; });
     $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${s}</option>`).join('');
+    $('opt-theme').innerHTML = Object.entries(cfg.themes)
+      .map(([k, t]) => `<option value="${k}">${t.label || k}</option>`).join('');
+    applyTheme(document.documentElement.dataset.theme); // set early by the inline script in <head>
 
-    L.theme.read();
     L.fx.confetti.init($('confetti'));
     wheel = new L.Wheel($('wheel'), Object.assign({}, cfg.wheel, { style: prefs.style }));
     wheel.onIndexChange = (i, spinning) => {

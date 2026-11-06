@@ -86,6 +86,7 @@ Almost everything is in **`js/config.js`**:
 | Option | What it does |
 | --- | --- |
 | `title`, `subtitle`, `logoUrl` | Branding in the top bar |
+| `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
 | `drawOrder` | `'asc'` = start with prize #1; `'desc'` = start with the highest number and finish with the grand prize #1. Also switchable in Settings. |
 | `spinOnNext` | `true`: one press moves to the next prize and spins. `false`: first press shows the prize, second press spins. |
 | `autoSummaryDelayMs` | Show the summary automatically after the last draw (`null` = wait for the button) |
@@ -94,9 +95,31 @@ Almost everything is in **`js/config.js`**:
 | `sound`, `confetti`, `flyAnimationMs` | Effects |
 | `text.*` | Every UI text, including the rank label (`1st prize`). Translate here. |
 
-**Look & feel:** the theme follows the [bekuplast.pl](https://www.bekuplast.pl/) style: a light grey background, white cards, brand green `#78b146`, the Manrope font, and uppercase "tag" labels. All colours, fonts and column widths are CSS variables at the top of **`css/styles.css`** (`:root`). The wheel canvas reads the same variables, so a theme change applies everywhere.
+### Themes
 
-**Logo:** `images/logo.png` was cut from a screenshot of the website. For a sharper result, replace it with the official logo file (PNG or SVG) and update `logoUrl` in `js/config.js` if the file name changes.
+There are two built-in themes:
+
+| Theme | Look |
+| --- | --- |
+| `default` | Dark navy with gold accents, pill buttons and a rainbow pie wheel |
+| `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the Manrope font, bordered uppercase labels and the company logo |
+
+You can choose a theme in three places:
+- **Settings (⚙) → Theme**. The choice is remembered in this browser.
+- **The URL**, for a link that always opens in that theme: https://wronkam.github.io/bekuplast-lottery/?theme=bekuplast
+- **`theme` in `js/config.js`**, which sets the default for everyone.
+
+How themes work:
+- `css/styles.css` holds the shared layout and components. They are driven by CSS variables (colours, fonts, corner radius, button style, wheel colours).
+- Each theme is one file in `css/themes/<name>.css`. It sets those variables and may restyle any component; every selector is prefixed with `[data-theme="<name>"]`.
+- The wheel canvas reads the same variables (`--wheel-*`, `--palette`), so it changes with the theme.
+
+To add a theme:
+1. Copy `css/themes/default.css` to `css/themes/<name>.css` and replace `default` with `<name>` in its selectors.
+2. Add a `<link>` for the file in `index.html`.
+3. Add an entry under `themes` in `js/config.js`. A theme can set its own `logoUrl`.
+
+**Logo:** `images/logo.png` was cut from a screenshot of the website. For a sharper result, replace it with the official logo file (PNG or SVG) and update the theme's `logoUrl` in `js/config.js` if the file name changes.
 
 **Adding a wheel style:** add a renderer function to `RENDERERS` in `js/wheel.js`. It receives the canvas context and draws `this.items` at position `this.p`. It then appears in the Settings drop-down automatically.
 
@@ -104,7 +127,8 @@ Almost everything is in **`js/config.js`**:
 
 ```
 index.html            page layout (stage, summary, dialogs)
-css/styles.css        theme variables + layout
+css/styles.css        shared layout & components (driven by CSS variables)
+css/themes/*.css      themes: default (dark & gold), bekuplast
 js/config.js          all settings & texts
 js/csv.js             UTF-8 CSV reading/parsing, names & prizes loaders, CSV export
 js/storage.js         saved progress (localStorage) and uploaded files (IndexedDB)

@@ -1,0 +1,56 @@
+/* =====================================================================
+ *  THEME: default – dark navy with gold accents (festive "game show" look)
+ * ===================================================================== */
+[data-theme="default"] {
+  --page-bg: radial-gradient(1200px 700px at 50% -10%, #1b2456, #0d1330);
+  --surface: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #f4f6ff;
+  --muted: #a9b1d6;
+  --accent: #ffc83d;            /* gold */
+  --accent-strong: #ffc83d;
+  --accent-contrast: #241a00;
+  --accent-soft: rgba(255, 200, 61, 0.12);
+  --danger: #ff5a5a;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading-tracking: 0;
+  --radius: 18px;
+  --btn-radius: 999px;          /* pill buttons, round icon buttons */
+  --main-btn-bg: linear-gradient(180deg, #ffe08a, #ffc83d);
+  --main-btn-bg-hover: linear-gradient(180deg, #ffe9a8, #ffd25c);
+  --main-btn-shadow: 0 8px 30px rgba(255, 200, 61, 0.35);
+  --topbar-bg: transparent;
+  --topbar-border: transparent;
+  --badge-bg: #26306b;
+  --dialog-bg: #1b2456;
+  --backdrop: rgba(5, 8, 25, 0.7);
+  /* wheel canvas */
+  --wheel-bg: #141b42;
+  --wheel-bg-2: #26306b;
+  --wheel-rim: #26306b;
+  --wheel-hub: #141b42;
+  --wheel-shade: rgba(0, 0, 0, 0.55);
+  --wheel-radius: 18;
+  --palette: #ff5d8f, #ffc83d, #3dd6d0, #7b61ff, #4ade80, #ff8a3d, #38bdf8, #f472b6;
+  /* pie with many names: rainbow */
+  --wheel-hue-start: 0;
+  --wheel-hue-span: 360;
+  --wheel-hue-mirror: 0;
+  --wheel-sat: 72%;
+  --wheel-light: 55%;
+  --wheel-light-alt: 55%;
+  color-scheme: dark;
+}
+[data-theme="default"] .btn:hover { background: rgba(255, 255, 255, 0.14); }
+[data-theme="default"] .btn-danger:hover { background: #ff7676; }
+[data-theme="default"] .btn-main:hover { background: var(--main-btn-bg-hover); }
+[data-theme="default"] .icon-btn { color: var(--text); }
+[data-theme="default"] .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+[data-theme="default"] .progress { color: var(--accent); }
+[data-theme="default"] .prize-image img { filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4)); }
+[data-theme="default"] .results-panel h3 { color: var(--muted); font-size: 0.85rem; }
+[data-theme="default"] .results-list li { background: rgba(255, 255, 255, 0.03); }
+[data-theme="default"] .results-list li.current { background: var(--accent-soft); }
+[data-theme="default"] .summary h2 { color: var(--accent); }
+[data-theme="default"] .summary-card.first { border-color: var(--accent); box-shadow: 0 0 40px rgba(255, 200, 61, 0.25); }
+[data-theme="default"] .dialog select { background: #0d1330; }

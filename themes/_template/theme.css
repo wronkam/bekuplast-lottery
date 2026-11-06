@@ -80,5 +80,7 @@
  * Useful hooks: .topbar .panel .prize-card .prize-image .tag .winner-slot(.has-winner)
  * .results-list li(.current/.done/.upcoming) .btn .btn-main .icon-btn .toolbar-select
  * .summary-card(.first) .flying-name .dialog   body[data-wheel="drum"|"pie"]
+ * Tip: if you restyle .btn:hover, also set .btn-main:hover { background: var(--main-btn-bg-hover); }
+ * (theme rules beat the base ones, so a generic .btn:hover would otherwise recolour the Spin button).
  */
 /* .tag { border: 1px solid var(--border); padding: 0.4em 0.9em; border-radius: var(--btn-radius); } */

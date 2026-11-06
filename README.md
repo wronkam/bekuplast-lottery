@@ -118,7 +118,7 @@ Pick the look from the **Style** drop-down in the top bar. Built-in themes:
 | --- | --- |
 | `default` (*Classic*) | Dark navy with gold accents, pill buttons and a rainbow pie wheel |
 | `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the Manrope font, bordered uppercase labels and the company logo |
-| `bekuplast-christmas` | Festive bekuplast: pine-green background with falling snow, Christmas red with gold and bekuplast green, a candy-cane stripe, ❄ labels and a red/green/gold wheel. Open it directly with `?theme=bekuplast-christmas`. |
+| `bekuplast-christmas` | Festive bekuplast: rich Christmas-red panels with gold trim, a gold Spin button and gold highlights, falling snow, a gold/red/green garland under the top bar, ❄ labels, and a red/gold/green wheel. Open it directly with `?theme=bekuplast-christmas`. |
 
 The choice is remembered in this browser. `?theme=bekuplast` in the URL opens a specific theme, e.g. https://wronkam.github.io/bekuplast-lottery/?theme=bekuplast. `theme` in `js/config.js` sets the default for everyone.
 

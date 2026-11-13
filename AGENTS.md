@@ -122,6 +122,7 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
   - Re-renders the stage, the summary and the open Settings dialog.
 - **`applyLayoutPrefs()` / `toggleTopbar()`:**
   - `prefs.showList` controls `body.hide-list`. The prize list is hidden by default (`config.showPrizeList: false`); with the list hidden, the stage uses two columns on screens wider than 1100 px. The switch is `#opt-list` in Settings.
+  - `prefs.introOnly` controls `body.intro-solo`. With `body.intro` also set (the start screen), only the start panel and the main button show: the wheel, readout, pool info and prize list are hidden, and the stage becomes one centred column. The default comes from `config.startScreenImageOnly: true`; the switch is `#opt-intro-only` in Settings.
   - `prefs.topbarHidden` controls `body.topbar-hidden`. The top bar is hidden and only `#btn-show-topbar` (a faint ▾ in the corner) remains. The ▴ button `#btn-hide-topbar` and the H key toggle it.
 - **`fitToolbar()`:**
   - Measures the toolbar with the Style drop-down visible.
@@ -132,14 +133,14 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 | Where | Key | Content |
 | --- | --- | --- |
 | localStorage | `<storageKey>:state` | lottery progress (above) |
-| localStorage | `<storageKey>:prefs` | `{ style, sound, drawOrder, lang, theme, showList, topbarHidden }` |
+| localStorage | `<storageKey>:prefs` | `{ style, sound, drawOrder, lang, theme, showList, topbarHidden, introOnly }` |
 | IndexedDB db `<storageKey>`, store `kv` | `upload` | `{ namesText, prizesText, images: File[], warnings[] }` |
 | URL | `?theme=<name>&lang=<code>` | overrides prefs for this visit (removed from the URL when the user switches) |
 
 `storageKey` is set in `config.js` (`bekuplast-lottery`). Change it to run a separate lottery with no shared saved data.
 
 ### Body / html attributes that CSS can use
-`html[data-theme="<name>"]`, `html[lang]`, `body[data-wheel="drum"|"pie"]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`, `body.intro` (start screen), `body.hide-list` (prize list off), `body.topbar-hidden`.
+`html[data-theme="<name>"]`, `html[lang]`, `body[data-wheel="drum"|"pie"]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`, `body.intro` (start screen), `body.intro-solo` (start screen shows the image only, combined with `.intro`), `body.hide-list` (prize list off), `body.topbar-hidden`.
 
 ---
 
@@ -268,7 +269,7 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 ---
 
 ## 9. Configuration reference (`js/config.js`)
-`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `css`), `showPrizeList`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
+`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `css`), `showPrizeList`, `startScreenImageOnly`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
 
 ---
 
@@ -280,7 +281,7 @@ node tests/smoke.js     # ~30 s; exit code 0 = pass
 - **Setup:** needs Playwright with Chromium. It's pre-installed in Claude Code cloud sessions. Locally: `npm i -D playwright && npx playwright install chromium`, run outside the repo or ignore `node_modules`.
 - **Speed and isolation:** it serves the repo itself and rewrites `config.js` on the fly for fast spins. Any Google Fonts request is blocked, so it runs offline.
 - **What it checks:**
-  - The start screen first, then a full draw with the two-press flow and unique winners.
+  - The start screen first (image only by default, plus its Settings switch), then a full draw with the two-press flow and unique winners.
   - The prize list hidden by default and its Settings switch; hiding and showing the top bar.
   - Every summary card having the same border.
   - The brand font loading in the themes that use it.

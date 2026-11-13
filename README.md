@@ -22,6 +22,7 @@ The top bar also has a **Style** drop-down to switch the look (see [Themes](#the
 
 - **Hide the top bar** with the **▴** button (or <kbd>H</kbd>) for a cleaner projector view. A faint **▾** in the top-right corner brings it back.
 - **The prize list** (all prizes with their winners, on the right) is hidden by default. Turn it on under **⚙ → Options → Show prize list**.
+- **The start screen** shows only the start image and the **Start ➜** button by default. The name wheel appears with the first prize. To show the wheel on the start screen as well, turn off **⚙ → Options → Start screen: image only**.
 
 | Key | Action |
 | --- | --- |
@@ -109,6 +110,7 @@ Almost everything is in **`js/config.js`**:
 | `logoUrl` | Logo in the top bar and on the summary (a theme can set its own) |
 | `startImage` | Image on the start screen before the first prize (`null` = no start screen). A theme can set its own; the Christmas theme does |
 | `showPrizeList` | Show the prize list with winners by default (`false`; also a switch in Settings) |
+| `startScreenImageOnly` | On the start screen, show only the start image and hide the name wheel (`true`; also a switch in Settings) |
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
 | `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
 | `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |

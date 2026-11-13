@@ -20,6 +20,7 @@ window.LOTTERY_I18N = {
     hideMenuTip: 'Hide top bar (H)',
     showMenuTip: 'Show top bar (H)',
     showPrizeList: 'Show prize list',
+    introImageOnly: 'Start screen: image only (hide the name wheel)',
     title: 'Bekuplast Lottery',
     subtitle: 'Prize draw',
 
@@ -121,6 +122,7 @@ window.LOTTERY_I18N = {
     hideMenuTip: 'Ukryj górny pasek (H)',
     showMenuTip: 'Pokaż górny pasek (H)',
     showPrizeList: 'Pokaż listę nagród',
+    introImageOnly: 'Ekran startowy: tylko obraz (ukryj koło z nazwiskami)',
     title: 'Loteria Bekuplast',
     subtitle: 'Losowanie nagród',
 
@@ -212,6 +214,7 @@ window.LOTTERY_I18N = {
     hideMenuTip: 'Obere Leiste ausblenden (H)',
     showMenuTip: 'Obere Leiste einblenden (H)',
     showPrizeList: 'Preisliste anzeigen',
+    introImageOnly: 'Startbildschirm: nur Bild (Namensrad ausblenden)',
     title: 'Bekuplast Verlosung',
     subtitle: 'Preisverlosung',
 

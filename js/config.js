@@ -53,6 +53,9 @@ window.LOTTERY_CONFIG = {
   spinOnNext: false,
   // Prize list with winners on the right (also a switch in Settings; remembered per browser)
   showPrizeList: false,
+  // Start screen shows only the start image (name wheel hidden until the first prize).
+  // Also a switch in Settings; remembered per browser.
+  startScreenImageOnly: true,
   // Show the summary automatically this many ms after the last winner (null = wait for button)
   autoSummaryDelayMs: null,
 

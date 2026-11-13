@@ -151,6 +151,17 @@ body.hide-list .results-panel { display: none; }
 
 /* Start screen (before the first prize): no winner box */
 body.intro .winner-slot { display: none; }
+/* …and with "image only" (Settings, default on): just the start panel, centred, with the Start button below */
+body.intro.intro-solo .stage {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+}
+body.intro.intro-solo .prize-panel { width: min(100%, 1100px); }
+body.intro.intro-solo .wheel-wrap,
+body.intro.intro-solo .readout,
+body.intro.intro-solo .pool-info,
+body.intro.intro-solo .results-panel { display: none; }
 
 /* Not enough room in the top bar -> the Style drop-down moves to Settings -> Options (see fitToolbar in js/app.js) */
 .dialog label.row.settings-theme-row { display: none; }

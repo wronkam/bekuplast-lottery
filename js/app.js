@@ -12,6 +12,7 @@
     {
       style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language,
       showList: !!cfg.showPrizeList, topbarHidden: false,
+      introOnly: cfg.startScreenImageOnly !== false,
     },
     L.store.loadPrefs(),
   );
@@ -341,6 +342,7 @@
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
     $('opt-list').checked = prefs.showList;
+    $('opt-intro-only').checked = prefs.introOnly;
     $('order-hint').hidden = !(state && anyResults());
   }
   function openSettings() {
@@ -493,6 +495,7 @@
   /** Layout preferences: prize list on/off, top bar hidden/shown. */
   function applyLayoutPrefs() {
     document.body.classList.toggle('hide-list', !prefs.showList);
+    document.body.classList.toggle('intro-solo', !!prefs.introOnly); // only matters together with body.intro
     document.body.classList.toggle('topbar-hidden', !!prefs.topbarHidden);
     if (!prefs.topbarHidden) fitToolbar();
   }
@@ -555,6 +558,11 @@
       prefs.sound = e.target.checked;
       L.store.savePrefs(prefs);
       updateSoundBtn();
+    });
+    $('opt-intro-only').addEventListener('change', (e) => {
+      prefs.introOnly = e.target.checked;
+      L.store.savePrefs(prefs);
+      applyLayoutPrefs();
     });
     $('opt-list').addEventListener('change', (e) => {
       prefs.showList = e.target.checked;

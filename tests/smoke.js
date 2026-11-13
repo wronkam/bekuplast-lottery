@@ -3,7 +3,7 @@
  * Needs Playwright with Chromium (`npm i -D playwright && npx playwright install chromium`
  * locally; it is pre-installed in Claude Code cloud sessions).
  * Starts its own static server, speeds the wheel up, and checks:
- *   - start screen first, then a full draw (two presses per prize) with unique winners, no JS errors
+ *   - start screen first (image only by default, switchable), then a full draw (two presses per prize) with unique winners, no JS errors
  *   - prize list hidden by default + Settings switch, hide/show top bar, every summary card bordered
  *   - the bundled brand font loads (bekuplast themes)
  *   - progress survives a reload, reset works
@@ -65,7 +65,14 @@ function serve() {
         btn: document.getElementById('main-btn').textContent, begin: window.LOTTERY_I18N.en.begin,
         img: document.getElementById('prize-image').getAttribute('src') }));
       ok(intro.intro && intro.btn === intro.begin && !!intro.img, `start screen first (${intro.img})`);
+      const wheelShown = () => p.isVisible('#wheel-wrap');
+      ok(!(await wheelShown()) && (await p.isVisible('#main-btn')), 'start screen shows only the image panel + Start button');
+      await p.click('#btn-settings'); await p.uncheck('#opt-intro-only'); await p.click('#settings-form button[value=close]');
+      const off = await wheelShown();
+      await p.click('#btn-settings'); await p.check('#opt-intro-only'); await p.click('#settings-form button[value=close]');
+      ok(off && !(await wheelShown()), 'Settings switch shows / hides the name wheel on the start screen');
       await p.click('#main-btn'); await p.waitForTimeout(150);
+      ok(await wheelShown(), 'name wheel appears with the first prize');
       const first = await p.evaluate(() => [document.body.classList.contains('intro'), document.body.classList.contains('is-spinning'),
         document.getElementById('main-btn').textContent]);
       ok(!first[0] && !first[1] && first[2] === 'Spin!', 'first press shows prize 1 without spinning');

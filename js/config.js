@@ -25,7 +25,7 @@ window.LOTTERY_CONFIG = {
    *   label   – name shown in the drop-down (a string, or { en: '…', pl: '…' } per language)
    *   logoUrl – optional logo for this theme (null/omitted = global logoUrl)
    *   startImage – optional start-screen image for this theme (omitted = global startImage)
-   *   winSound   – optional default winner sound for this theme (see `winSound` below)
+   *   soundSet   – optional default draw sound set for this theme (see `soundSet` below)
    *   css     – optional custom stylesheet path (default: themes/<name>/theme.css)
    * Pick the default here, from the drop-down, or with ?theme=<name> in the URL. */
   theme: 'default',
@@ -36,7 +36,7 @@ window.LOTTERY_CONFIG = {
       label: { en: 'bekuplast Christmas', pl: 'bekuplast świąteczny', de: 'bekuplast Weihnachten' },
       logoUrl: 'themes/bekuplast/logo.png',
       startImage: 'themes/bekuplast-christmas/start.svg',
-      winSound: 'xmas_jinglebells',
+      soundSet: 'xmas_jinglebells',
     },
   },
 
@@ -63,12 +63,10 @@ window.LOTTERY_CONFIG = {
 
   /* ---------- Wheel ---------- */
   wheel: {
-    style: 'drum',          // 'drum' (vertical reel, best for hundreds of names) | 'pie' (classic wheel)
     durationMs: 7000,       // spin length
     durationJitterMs: 1500, // +/- random variation of spin length
     easingPower: 3,         // higher = longer, slower "crawl" at the end (suspense)
     minTravelItems: 120,    // drum: minimum number of names that fly past during a spin
-    pieLaps: 4,             // pie: minimum full rotations
     drumVisibleItems: 11,   // drum: how many names are visible at once
     idleSpeed: 0.6,         // names per second the wheel drifts while idle (0 = still)
     windUpMs: 350,          // small "pull back" before the spin starts (0 = none)
@@ -76,10 +74,10 @@ window.LOTTERY_CONFIG = {
 
   /* ---------- Effects ---------- */
   sound: true,     // default; can be toggled in the UI
-  // Sound when a winner is drawn (Settings -> Sound): fanfare | tada | chime | applause |
-  // xmas_bells | xmas_sleigh | xmas_jinglebells | custom (own file uploaded in Settings).
-  // A theme can set its own default (the Christmas theme uses Jingle Bells).
-  winSound: 'fanfare',
+  // Draw sound set (Settings -> Sound): the sound while the drum spins + the matching finish.
+  // classic | gameshow | drumroll | chime | xmas_bells | xmas_sleigh | xmas_jinglebells |
+  // custom (own files chosen in Settings). A theme can set its own (Christmas: Jingle Bells).
+  soundSet: 'classic',
   confetti: true,
   flyAnimationMs: 1100, // how long the winner's name takes to fly under the prize
 

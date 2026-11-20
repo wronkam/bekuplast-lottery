@@ -33,20 +33,9 @@
   /* wheel canvas */
   --wheel-bg: #141b42;
   --wheel-bg-2: #26306b;
-  --wheel-rim: #26306b;
-  --wheel-hub: #141b42;
   --wheel-shade: rgba(0, 0, 0, 0.55);
   --wheel-radius: 18;
   --palette: #ff5d8f, #ffc83d, #3dd6d0, #7b61ff, #4ade80, #ff8a3d, #38bdf8, #f472b6;
-  /* pie with many names: rainbow */
-  --wheel-many: sweep;
-  --wheel-blocks: 12;
-  --wheel-hue-start: 0;
-  --wheel-hue-span: 360;
-  --wheel-hue-mirror: 0;
-  --wheel-sat: 72%;
-  --wheel-light: 55%;
-  --wheel-light-alt: 55%;
   color-scheme: dark;
 }
 

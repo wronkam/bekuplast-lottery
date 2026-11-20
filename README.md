@@ -24,7 +24,20 @@ The top bar also has a **Style** drop-down to switch the look (see [Themes](#the
 - **The prize list** (all prizes with their winners, on the right) is hidden by default. Turn it on under **⚙ → Options → Show prize list**.
 - **The start screen** shows only the start image and the **Start ➜** button by default. The name wheel appears with the first prize. To show the wheel on the start screen as well, turn off **⚙ → Start screen → Start screen: image only**.
 - **Your own start image:** choose it under **⚙ → Start screen → Start screen image**. It's used immediately, doesn't reset the draw, and is remembered in this browser. **Use default image** switches back.
-- **Winner sound:** pick the sound played when a name is drawn under **⚙ → Sound → Winner sound**. ▶ plays it. The choices are Fanfare, Ta-da!, Chime, Applause, and three Christmas sounds: Church bells, Sleigh bells and *Jingle Bells*. **Own file…** lets you choose any MP3, WAV or OGG file, which plays for at most 8 seconds. The Christmas theme uses *Jingle Bells* until you pick something else. All built-in sounds are generated in the browser, so they work offline.
+- **Draw sound:** choose under **⚙ → Sound → Draw sound**; ▶ plays a short demo. Each option is a matching pair: a sound while the drum spins, and a finish when the name is drawn.
+
+  | Option | While the drum spins | When the name is drawn |
+  | --- | --- | --- |
+  | Clicks + fanfare | ticking clicks | fanfare |
+  | Game-show wheel | wooden ratchet | ta-da + applause |
+  | Drum roll | snare drum roll, getting louder | cymbal crash |
+  | Glockenspiel | glockenspiel notes | chime arpeggio |
+  | 🎄 Little bells + church bells | tinkling bells | church bells |
+  | 🎄 Sleigh bells | sleigh-bell shakes | big sleigh-bell finish |
+  | 🎄 Jingle Bells | the *Jingle Bells* tune, one note per name, slowing down with the drum | "…one-horse open sleigh!" |
+  | Own files… | your file, looped | your second file (max 8 s) |
+
+  The ticks follow the drum: fast at first, slowing to single ticks before it stops. The Christmas theme uses *Jingle Bells* until you pick something else. All built-in sounds are generated in the browser, so they work offline. With **Own files…** you can choose an MP3, WAV or OGG for either part, or both.
 
 | Key | Action |
 | --- | --- |
@@ -115,14 +128,13 @@ Almost everything is in **`js/config.js`**:
 | `showPrizeList` | Show the prize list with winners by default (`false`; also a switch in Settings) |
 | `startScreenImageOnly` | On the start screen, show only the start image and hide the name wheel (`true`; also a switch in Settings) |
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
-| `theme`, `themes` | Default theme and the list of themes (each can set `logoUrl`, `startImage`, `winSound`); see [Themes](#themes) |
+| `theme`, `themes` | Default theme and the list of themes (each can set `logoUrl`, `startImage`, `soundSet`); see [Themes](#themes) |
 | `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |
 | `spinOnNext` | `false` (default): after a winner, one press shows the next prize and another press spins. `true`: one press moves to the next prize and spins immediately. |
 | `autoSummaryDelayMs` | Show the summary automatically after the last draw (`null` = wait for the button) |
-| `wheel.style` | `'drum'` (vertical reel, readable with hundreds of names) or `'pie'` (classic wheel). Also switchable in Settings. |
 | `wheel.durationMs`, `durationJitterMs`, `easingPower` | Spin length and how long the suspenseful slow-down lasts |
 | `sound`, `confetti`, `flyAnimationMs` | Effects |
-| `winSound` | Default winner sound: `fanfare`, `tada`, `chime`, `applause`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells` or `custom`. A theme can set its own; the Christmas theme uses `xmas_jinglebells` |
+| `soundSet` | Default draw sound: `classic`, `gameshow`, `drumroll`, `chime`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells` or `custom`. A theme can set its own; the Christmas theme uses `xmas_jinglebells` |
 
 ### Language
 
@@ -142,7 +154,7 @@ Pick the look from the **Style** drop-down in the top bar. Built-in themes:
 
 | Theme | Look |
 | --- | --- |
-| `default` (*Classic*) | Dark navy with gold accents, pill buttons and a rainbow pie wheel |
+| `default` (*Classic*) | Dark navy with gold accents and pill buttons |
 | `bekuplast` | Matches [bekuplast.pl](https://www.bekuplast.pl/): light grey and white, brand green `#78b146`, the brand font (Manrope, bundled), bordered uppercase labels and the company logo |
 | `bekuplast-christmas` | Festive bekuplast: rich Christmas-red panels with gold trim, a gold Spin button and gold highlights, falling snow, a gold/red/green garland under the top bar, ❄ labels, and a red/gold/green wheel. Open it directly with `?theme=bekuplast-christmas`. |
 
@@ -167,7 +179,7 @@ themes/
   3. **Overrides:** optional CSS rules for any component (`.tag`, `.winner-slot`, `.results-list li`, …), written as plain selectors.
 - **Only the active theme's stylesheet is loaded.** Switching swaps it without a reload.
 - **The shared layout (`css/styles.css`) sits in a lower CSS cascade layer.** Any rule in a theme file therefore wins without special selectors or `!important`.
-- **The wheel canvas reads the same variables** (`--wheel-*`, `--palette`), so it follows the theme. With many names the classic wheel uses either a smooth colour sweep (`--wheel-many: sweep`) or bold sectors in the palette colours (`--wheel-many: blocks`, as in the Christmas theme).
+- **The drum canvas reads the same variables** (`--wheel-*`, and `--palette` for the confetti), so it follows the theme.
 
 #### Adding a theme
 
@@ -185,7 +197,7 @@ themes/
 
 **Logo:** `themes/bekuplast/logo.png` was cut from a screenshot of the website. For a sharper result, replace it with the official logo file (PNG or SVG) and update `logoUrl` if the file name changes.
 
-**Adding a wheel style:** add a renderer function to `RENDERERS` in `js/wheel.js`. It receives the canvas context and draws `this.items` at position `this.p`. It then appears in the Settings drop-down automatically.
+**Adding a draw sound:** add an entry to `SOUND_SETS` in `js/effects.js` (a `tick` while the drum spins and/or a `spin` for continuous sounds, plus a `win` finish) and a label `sound_<key>` in `js/i18n.js` for every language. It then appears in the Settings drop-down automatically.
 
 ## Project structure
 
@@ -198,7 +210,7 @@ js/i18n.js            UI texts in English, Polish & German (add more languages h
 js/csv.js             UTF-8 CSV reading/parsing, names & prizes loaders, CSV export
 js/storage.js         saved progress (localStorage) and uploaded files (IndexedDB)
 js/effects.js         fair RNG, sound (WebAudio), confetti, flying-name animation, theme colours
-js/wheel.js           the wheel (drum & pie renderers, spin physics)
+js/wheel.js           the drum (rendering, spin physics)
 js/app.js             lottery flow / state machine and UI rendering
 fonts/                bundled brand font (brand-font.woff2 = Manrope) + license; see fonts/README.md
 tests/smoke.js        end-to-end smoke test: `node tests/smoke.js` (needs Playwright)

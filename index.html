@@ -61,7 +61,6 @@
 
       <section class="wheel-panel">
         <div class="wheel-wrap" id="wheel-wrap"><canvas id="wheel"></canvas></div>
-        <div class="readout" id="readout"></div>
         <button class="btn btn-main" id="main-btn"></button>
         <div class="pool-info" id="pool-info"></div>
       </section>
@@ -132,9 +131,6 @@
         <label class="row settings-theme-row"><span data-i18n="themeTip"></span>
           <select id="opt-theme"></select>
         </label>
-        <label class="row"><span data-i18n="wheelStyle"></span>
-          <select id="opt-style"></select>
-        </label>
         <label class="row"><span data-i18n="drawOrder"></span>
           <select id="opt-order">
             <option value="asc" data-i18n="orderAsc"></option>
@@ -160,13 +156,19 @@
         <legend data-i18n="sound"></legend>
         <label class="row"><input type="checkbox" id="opt-sound"> <span data-i18n="soundEnabled"></span></label>
         <div class="row sound-row">
-          <label class="row" for="opt-win-sound"><span data-i18n="winSound"></span></label>
-          <select id="opt-win-sound"></select>
+          <label class="row" for="opt-sound-set"><span data-i18n="drawSound"></span></label>
+          <select id="opt-sound-set"></select>
           <button class="btn btn-small" type="button" id="btn-sound-preview" data-i18n-title="previewTip">▶</button>
         </div>
-        <label id="custom-sound-row" hidden><small data-i18n="customSoundHint"></small>
-          <input type="file" id="file-win-sound" accept="audio/*,.mp3,.wav,.ogg,.m4a">
-        </label>
+        <div id="custom-sound-row" hidden>
+          <p class="muted"><small data-i18n="customSoundHint"></small></p>
+          <label><span data-i18n="customSpinLabel"></span>
+            <input type="file" id="file-spin-sound" accept="audio/*,.mp3,.wav,.ogg,.m4a">
+          </label>
+          <label><span data-i18n="customWinLabel"></span>
+            <input type="file" id="file-win-sound" accept="audio/*,.mp3,.wav,.ogg,.m4a">
+          </label>
+        </div>
         <p class="error" id="sound-error"></p>
       </fieldset>
 

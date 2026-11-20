@@ -32,7 +32,7 @@ js/i18n.js                 window.LOTTERY_I18N: en/pl/de dictionaries + L.i18n h
 js/csv.js                  L.csv: UTF-8 decoding, CSV parser, names/prizes loaders, CSV export
 js/storage.js              L.store: localStorage (progress, prefs) + IndexedDB (uploaded files)
 js/effects.js              L.fx: RNG, shuffle, sound, confetti, flyText; L.theme: reads CSS variables for the canvas
-js/wheel.js                L.Wheel class + RENDERERS (drum, pie); L.wheelStyles
+js/wheel.js                L.Wheel class: the drum (vertical reel) – rendering and spin physics
 js/app.js                  the app: data loading, state machine, rendering, dialogs, theme/language switching
 data/names.csv, prizes.csv demo data (300 names; 8 prizes with Polish name + German secondary_name)
 images/prizes/*.svg        demo prize images
@@ -91,7 +91,8 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 2. Commit `results` and save.
 3. `spinningPrizeId` hides the result from the UI while the wheel turns.
 4. `await wheel.spinTo(pos)`.
-5. Fanfare, confetti, then `L.fx.flyText(name → #winner-name)`, then `render()` with the "pop" animation.
+   Right after `spinTo()`, `L.fx.sound.spinStart(set, wheel.lastSpinMs / 1000)` starts any continuous draw sound (drum roll, own file) for exactly the planned spin length. While spinning, `wheel.onIndexChange` calls `L.fx.sound.tick(set)` for every name passing the pointer.
+5. The finish sound (`L.fx.sound.win(set)`), confetti, then `L.fx.flyText(name → #winner-name)`, then `render()` with the "pop" animation.
 
 **Start screen:** it exists only if a start image is configured (`startImageUrl()`: the theme's `startImage`, else `config.startImage`; `null` turns it off). `createState()` then sets `current = -1`. `render()` shows the start image, the `introTitle` and the `introHint`, and CSS hides the winner box (`body.intro`). Reset and draw-order changes return to the start screen. `currentPrize()` is `null` there, so guard any new code that uses it with `inIntro()`.
 
@@ -112,19 +113,19 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 - **`render()`:** redraws the prize card, winner slot, prize list, pool info and button text. Call it after any state change.
 - **`openSummary(quiet)` / `closeSummary()` / `exportCsv()`:** the CSV export uses the i18n `csvHeader` and `csvFileName` and the `config.csv.exportDelimiter`, with a BOM.
 - **`confirmDialog(text, okLabel)`:** a promise that resolves to `true` or `false`. Use it for anything destructive (reset, new data, order change).
-- **Settings dialog layout:** four groups. *Load your own data* (CSV + prize images, applied with "Load files", resets the draw). *Options* (wheel style, draw order, prize list; plus Style when the top bar is compact). *Start screen* (`#file-start` own image applied at once, `#btn-start-default`, `#opt-intro-only`). *Sound* (`#opt-sound`, `#opt-win-sound` + `#btn-sound-preview`, `#file-win-sound` shown for "Own file…").
-- **`setCustomStart(file)`, `effectiveWinSound()`, `buildSoundOptions()`:** the own start image (`customStart`; `startImageUrl()` prefers it over the theme and config image) and the winner-sound drop-down, rebuilt on language change because its labels are translated. The own sound's file name goes in via `textContent`.
+- **Settings dialog layout:** four groups. *Load your own data* (CSV + prize images, applied with "Load files", resets the draw). *Options* (draw order, prize list; plus Style when the top bar is compact). *Start screen* (`#file-start` own image applied at once, `#btn-start-default`, `#opt-intro-only`). *Sound* (`#opt-sound`, `#opt-sound-set` + `#btn-sound-preview`, and for "Own files…" `#file-spin-sound` / `#file-win-sound`).
+- **`setCustomStart(file)`, `effectiveSoundSet()`, `buildSoundOptions()`, `setOwnSound(slot, file)`:** the own start image (`customStart`; `startImageUrl()` prefers it over the theme and config image) and the draw-sound drop-down, rebuilt on language change because its labels are translated. Own sound file names go in via `textContent`.
 - **`fillSettings()` / `openSettings()` / `loadFiles()` / `restoreDemo()`:** the settings dialog. Loading files validates by parsing, stores the files in IndexedDB, clears the saved progress, then reloads the page.
 - **`applyTheme(name)`:**
   - Sets `data-theme` and the logo (theme `logoUrl`, falling back to `config.logoUrl`).
   - Swaps the `<link id="theme-css">`: it inserts the new link, and once that loads it removes the old one and calls `L.theme.read()` and `fitToolbar()`.
 - **`applyLanguage(code)`:**
   - Calls `L.i18n.set` and then `applyStatic()`, which fills `data-i18n` and `data-i18n-title`.
-  - Rebuilds the language switch, the wheel-style and theme options, and calls `fitToolbar()`.
+  - Rebuilds the language switch, the sound and theme options, and calls `fitToolbar()`.
   - Re-renders the stage, the summary and the open Settings dialog.
 - **`applyLayoutPrefs()` / `toggleTopbar()`:**
   - `prefs.showList` controls `body.hide-list`. The prize list is hidden by default (`config.showPrizeList: false`); with the list hidden, the stage uses two columns on screens wider than 1100 px. The switch is `#opt-list` in Settings.
-  - `prefs.introOnly` controls `body.intro-solo`. With `body.intro` also set (the start screen), only the start panel and the main button show: the wheel, readout, pool info and prize list are hidden, and the stage becomes one centred column. The default comes from `config.startScreenImageOnly: true`; the switch is `#opt-intro-only` in Settings.
+  - `prefs.introOnly` controls `body.intro-solo`. With `body.intro` also set (the start screen), only the start panel and the main button show: the wheel, pool info and prize list are hidden, and the stage becomes one centred column. The default comes from `config.startScreenImageOnly: true`; the switch is `#opt-intro-only` in Settings.
   - `prefs.topbarHidden` controls `body.topbar-hidden`. The top bar is hidden and only `#btn-show-topbar` (a faint ▾ in the corner) remains. The ▴ button `#btn-hide-topbar` and the H key toggle it.
 - **`fitToolbar()`:**
   - Measures the toolbar with the Style drop-down visible.
@@ -135,30 +136,30 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 | Where | Key | Content |
 | --- | --- | --- |
 | localStorage | `<storageKey>:state` | lottery progress (above) |
-| localStorage | `<storageKey>:prefs` | `{ style, sound, winSound, drawOrder, lang, theme, showList, topbarHidden, introOnly }` |
+| localStorage | `<storageKey>:prefs` | `{ sound, soundSet, drawOrder, lang, theme, showList, topbarHidden, introOnly }` (older `winSound` / `style` entries are migrated or dropped on load) |
 | IndexedDB db `<storageKey>`, store `kv` | `upload` | `{ namesText, prizesText, images: File[], warnings[] }` |
-| IndexedDB, same store | `file:startImage`, `file:winSound` | own start image / own winner sound from Settings (`L.store.getFile/setFile/clearFile`). They are independent of the CSV upload: choosing one doesn't reset the draw, and "Restore demo data" doesn't remove them. |
+| IndexedDB, same store | `file:startImage`, `file:spinSound`, `file:winSound` | own start image / own draw sounds from Settings (`L.store.getFile/setFile/clearFile`). They are independent of the CSV upload: choosing one doesn't reset the draw, and "Restore demo data" doesn't remove them. |
 | URL | `?theme=<name>&lang=<code>` | overrides prefs for this visit (removed from the URL when the user switches) |
 
 `storageKey` is set in `config.js` (`bekuplast-lottery`). Change it to run a separate lottery with no shared saved data.
 
 ### Body / html attributes that CSS can use
-`html[data-theme="<name>"]`, `html[lang]`, `body[data-wheel="drum"|"pie"]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`, `body.intro` (start screen), `body.intro-solo` (start screen shows the image only, combined with `.intro`), `body.hide-list` (prize list off), `body.topbar-hidden`.
+`html[data-theme="<name>"]`, `html[lang]`, `body.is-spinning` (toolbar disabled), `body.compact-toolbar`, `body.load-failed`, `body.intro` (start screen), `body.intro-solo` (start screen shows the image only, combined with `.intro`), `body.hide-list` (prize list off), `body.topbar-hidden`.
 
 ---
 
 ## 4. The wheel (`js/wheel.js`)
 
-- **Model:** position `p` is measured in *items*, and the item under the pointer is `round(p) mod N`. Renderers only draw `this.items` at `this.p`.
+- **Model:** position `p` is measured in *items*, and the item under the pointer is `round(p) mod N`. `drawDrum()` draws `this.items` at `this.p`.
 - **`spinTo(target)`:**
-  - Computes the end position ≥ `minTravel`: for `pie` that's `pieLaps × N`; for `drum` it's `max(minTravelItems, N)`.
+  - Computes the end position ≥ `max(minTravelItems, N)` names further on.
+  - Sets `lastSpinMs` (wind-up + duration) synchronously, so sounds can be timed to the spin.
   - Optional wind-up (`windUpMs`), then easing `1-(1-k)^easingPower`.
   - Duration is `durationMs ± durationJitterMs`, clamped to at least 500 ms.
   - Resolves when the wheel stops.
 - **Idle:** it drifts at `idleSpeed` until `highlight` is set (after a draw).
-- **`onIndexChange(index, spinning)`:** a callback, used for tick sounds and the pie readout.
-- **Renderers:** `RENDERERS.drum` (a vertical 3D reel; readable with hundreds of names) and `RENDERERS.pie` (a classic wheel, with labels only when slices are wide enough; `#readout` shows the current name).
-- **To add a wheel style:** add a function to `RENDERERS(ctx, w, h, th)`. It's listed automatically in Settings. Add the i18n key `style_<name>` to every language.
+- **`onIndexChange(index, spinning)`:** a callback, used for the draw sound's ticks.
+- **Drum only:** the classic pie wheel was removed for simplicity. There's no wheel-style option any more.
 - **Colours come only from `L.theme`** (`js/effects.js`), which reads CSS variables. It's re-read whenever the theme changes. Never hard-code colours in the wheel.
 
 ---
@@ -182,12 +183,13 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 ## 6. Effects (`js/effects.js`)
 
 - **`L.fx.randomInt(n)`:** crypto, with no modulo bias. **`L.fx.shuffle`:** Fisher–Yates using `randomInt`.
-- **`L.fx.sound`:** WebAudio, synthesised, with no audio files. `tick()` is throttled to 35 ms. The AudioContext is created on first use, after a user gesture.
-  - **`win(name, force)`** plays a winner sound; `force` plays even when sounds are off (used by the Settings ▶ preview).
-  - **The sounds** live in `WIN_SOUNDS` (`fanfare`, `tada`, `chime`, `applause`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells`). Helpers: `tone`, `bell` (inharmonic partials), `noise` (filtered noise burst) and `jingle` (one sleigh-bell shake). `L.fx.winSounds` lists the keys.
-  - **To add a sound:** add a function to `WIN_SOUNDS` and a label `sound_<key>` to every language. Keys starting with `xmas_` appear under the Christmas group in the drop-down. Keep the peak between about 0.1 and 0.4; the smoke test renders each sound offline and checks it's audible and doesn't clip.
-  - **`'custom'`** plays the user's file: `setCustom(blob)` decodes it with an OfflineAudioContext (no gesture needed), and playback is capped at `customMaxSec` (8 s) with a fade-out. If no file is loaded, it falls back to the fanfare.
-  - **Which sound plays** is decided by `effectiveWinSound()` in `app.js`: `prefs.winSound`, else the theme's `winSound`, else `config.winSound`.
+- **`L.fx.sound`:** WebAudio, synthesised, with no audio files. The AudioContext is created on first use, after a user gesture.
+  - **Sound sets** (`SOUND_SETS`, keys in `L.fx.soundSets`) pair the sound during the spin with a matching finish: `classic`, `gameshow`, `drumroll`, `chime`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells`, `custom`. Each set has optional `spin(t, seconds)` (continuous, started once: drum roll, own file), optional `tick(t, n)` (per name passing the pointer; `n` counts ticks in this spin, so melodic sets play one note per tick; the Jingle Bells chorus follows the drum's speed), optional `gap` (minimum seconds between ticks, default 0.035), and `win(t)` (the finish).
+  - **API:** `spinStart(set, seconds, force)`, `tick(set, force, at)`, `win(set, force)` and `preview(set)` (a 2.4 s demo spin with slowing ticks plus the finish, for Settings ▶). `force` plays even when sounds are switched off.
+  - **Helpers:** `tone`, `bell` (inharmonic partials), `noise` (filtered noise burst), `jingle` (one sleigh-bell shake), `applause`, `crash`, `brass` and `playBuffer`.
+  - **To add a set:** add it to `SOUND_SETS` and a label `sound_<key>` to every language. Keys starting with `xmas_` appear under the Christmas group in the drop-down. Keep peaks between about 0.05 and 0.4; the smoke test renders each set (spin + ticks, and the finish) offline and checks it's audible and doesn't clip.
+  - **`'custom'`** uses the user's files: `setCustom('spin'|'win', blob)` decodes them with an OfflineAudioContext (no gesture needed). The spin file loops for the spin length; the win file plays for at most `customMaxSec` (8 s) with a fade-out. Missing files fall back to classic ticks and the chime finish.
+  - **Which set plays** is decided by `effectiveSoundSet()` in `app.js`: `prefs.soundSet`, else the theme's `soundSet`, else `config.soundSet`.
 - **`L.fx.confetti`:** a full-screen canvas (`#confetti`, z-index 60). Colours come from the theme `--palette`.
 - **`L.fx.flyText(text, fromRect, toEl, ms)`:** a `.flying-name` element animated along an arc with the Web Animations API.
 - **`L.theme.read()`:** reads the `--palette`, `--text`, `--accent`, `--font` and `--wheel-*` variables, with safe fallbacks so a broken theme can't crash the canvas.
@@ -237,12 +239,11 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 | Accent | `--accent`, `--accent-strong` (accent for text), `--accent-contrast` (text on accent), `--accent-soft`, `--danger`, `--danger-contrast` |
 | Type & shape | `--font`, `--heading-tracking`, `--radius`, `--btn-radius` (999px = pill) |
 | Spin button | `--main-btn-bg`, `--main-btn-bg-hover`, `--main-btn-color`, `--main-btn-shadow` |
-| Wheel canvas | `--wheel-bg`, `--wheel-bg-2` (drum edges/centre), `--wheel-shade`, `--wheel-radius` (a **number**, px), `--wheel-rim`, `--wheel-hub`, `--palette` (comma-separated colours; slices and confetti) |
-| Pie with many names | `--wheel-many: sweep \| blocks`, `--wheel-blocks`, `--wheel-hue-start`, `--wheel-hue-span`, `--wheel-hue-mirror` (0/1), `--wheel-sat`, `--wheel-light`, `--wheel-light-alt` |
+| Drum canvas | `--wheel-bg`, `--wheel-bg-2` (drum edges/centre), `--wheel-shade`, `--wheel-radius` (a **number**, px), `--palette` (comma-separated colours for the confetti) |
 | Native controls | `color-scheme: light \| dark` |
 
 ### Useful component hooks for section 3
-`.topbar` (`::after` is free, e.g. for a stripe), `.brand h1`, `.logo`, `.panel`, `.tag` (`::after` = decoration such as the bekuplast dot or ❄), `.prize-card`, `.prize-image` (keep `::after` free: the 🎁 placeholder uses it), `.prize-name`, `.winner-slot(.has-winner/.no-winner)`, `.winner-label`, `.winner-name`, `.wheel-wrap`, `body[data-wheel="drum"] .wheel-wrap`, `.readout`, `.pool-info`, `.results-list li(.current/.done/.upcoming)`, `.badge`, `.r-winner`, `.btn`, `.btn-main`, `.btn-ghost`, `.btn-danger`, `.icon-btn`, `.toolbar-select`, `.lang-switch span(.active)`, `.summary h2`, `.summary-card` (every card gets the accent border; `.first` = grand prize, extra glow only), `.s-img`, `.s-rank`, `.s-prize`, `.s-secondary`, `.s-winner`, `.topbar-reveal`, `.summary-logo`, `.flying-name`, `.dialog`, `.dialog legend`. `body::before`/`::after` are free for page effects (the Christmas theme puts snow there, at z-index 45 with `pointer-events: none`).
+`.topbar` (`::after` is free, e.g. for a stripe), `.brand h1`, `.logo`, `.panel`, `.tag` (`::after` = decoration such as the bekuplast dot or ❄), `.prize-card`, `.prize-image` (keep `::after` free: the 🎁 placeholder uses it), `.prize-name`, `.winner-slot(.has-winner/.no-winner)`, `.winner-label`, `.winner-name`, `.wheel-wrap`, `.pool-info`, `.results-list li(.current/.done/.upcoming)`, `.badge`, `.r-winner`, `.btn`, `.btn-main`, `.btn-ghost`, `.btn-danger`, `.icon-btn`, `.toolbar-select`, `.lang-switch span(.active)`, `.summary h2`, `.summary-card` (every card gets the accent border; `.first` = grand prize, extra glow only), `.s-img`, `.s-rank`, `.s-prize`, `.s-secondary`, `.s-winner`, `.topbar-reveal`, `.summary-logo`, `.flying-name`, `.dialog`, `.dialog legend`. `body::before`/`::after` are free for page effects (the Christmas theme puts snow there, at z-index 45 with `pointer-events: none`).
 
 ### Adding a theme: checklist
 1. `cp -r themes/_template themes/<name>`. Edit the header and all variables, and add assets (logo etc.) to the folder.
@@ -252,7 +253,7 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
    ```
    `label` can be a plain string. `logoUrl` is optional; `null` means no logo. You can point to another theme's asset, as `bekuplast-christmas` does with `themes/bekuplast/logo.png`. Add `startImage: 'themes/<name>/start.svg'` for a themed start screen (400×300 artwork without text works best, since the title is translated).
 3. Run `node tests/smoke.js`. It loads every registered theme, checks the top bar at 390, 1024, 1366 and 1920 px in every language, and checks for JavaScript errors.
-4. Look at it with `?theme=<name>`. Check the drum and the pie (⚙ → Wheel style), the summary (finish a draw), the settings dialog, and a phone width.
+4. Look at it with `?theme=<name>`. Check the drum, the summary (finish a draw), the settings dialog, and a phone width.
 5. Optionally mention it in the README's theme table.
 
 ### Theme gotchas (learned the hard way)
@@ -270,14 +271,14 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 ### Existing themes
 | Name | Notes |
 | --- | --- |
-| `default` ("Classic") | Dark navy and gold, pill buttons, rainbow pie sweep, system fonts. The default (`config.theme`). |
+| `default` ("Classic") | Dark navy and gold, pill buttons, system fonts. The default (`config.theme`). |
 | `bekuplast` | Matches bekuplast.pl: `#f3f3f3` page, white cards, green `#78b146`, text `#424242`, Brand Font (Manrope), bordered uppercase `.tag` with a small square dot, square-ish corners. |
-| `bekuplast-christmas` | Red panels with gold trim, gold Spin button, red drum with gold names, gold/red/green garland under the top bar, two-layer CSS snow, ❄ tags, cream logo plaque, pie in red/gold/green blocks (`--wheel-many: blocks`). |
+| `bekuplast-christmas` | Red panels with gold trim, gold Spin button, red drum with gold names, gold/red/green garland under the top bar, two-layer CSS snow, ❄ tags, cream logo plaque, default draw sound Jingle Bells (`soundSet: 'xmas_jinglebells'` in the registry). |
 
 ---
 
 ## 9. Configuration reference (`js/config.js`)
-`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `winSound`, `css`), `showPrizeList`, `startScreenImageOnly`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `winSound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
+`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `soundSet`, `css`), `showPrizeList`, `startScreenImageOnly`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{durationMs,durationJitterMs,easingPower,minTravelItems,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `soundSet`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
 
 ---
 
@@ -293,7 +294,7 @@ node tests/smoke.js     # ~30 s; exit code 0 = pass
   - The prize list hidden by default and its Settings switch; hiding and showing the top bar.
   - Every summary card having the same border.
   - The brand font loading in the themes that use it.
-  - Every winner sound rendering real, non-clipping audio and having a label in every language; the own start image and own sound pickers, including persistence and "Use default image".
+  - Every draw sound set rendering real, non-clipping audio (during the spin and the finish) and having a label in every language; the own start image and both own sound pickers, including persistence and "Use default image".
   - Persistence across a reload, the summary, and reset.
   - Every registered theme loads and defines its variables.
   - All languages have identical keys and switch the UI.

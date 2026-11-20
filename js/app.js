@@ -10,12 +10,18 @@
 
   const prefs = Object.assign(
     {
-      style: cfg.wheel.style, sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language,
+      sound: cfg.sound, drawOrder: cfg.drawOrder, lang: cfg.language,
       showList: !!cfg.showPrizeList, topbarHidden: false,
       introOnly: cfg.startScreenImageOnly !== false,
     },
     L.store.loadPrefs(),
   );
+  // older versions stored a winner sound only -> map it to the matching sound set
+  if (prefs.winSound && !prefs.soundSet) {
+    prefs.soundSet = { fanfare: 'classic', tada: 'gameshow', applause: 'gameshow' }[prefs.winSound] || prefs.winSound;
+  }
+  delete prefs.winSound;
+  delete prefs.style; // the classic pie wheel was removed
 
   let data = null;       // { names[], prizes[], byId, key, source, warnings[], namesText, prizesText, images[] }
   let state = null;      // { key, order[], current, results{prizeId: {nameIndex, name}}, showSummary }
@@ -25,7 +31,7 @@
   let busy = false;
   let loadFailure = null; // error from loading the data files (shown in the UI)
   let customStart = null; // { url, name } – start-screen image chosen in Settings (IndexedDB 'file:startImage')
-  let customSound = null; // File – own winner sound chosen in Settings (IndexedDB 'file:winSound')
+  const customSound = { spin: null, win: null }; // own sound Files from Settings (IndexedDB 'file:spinSound' / 'file:winSound')
 
   /* =====================================================================
    * Data
@@ -147,18 +153,18 @@
     document.body.classList.add('is-spinning');
     render();
 
-    await wheel.spinTo(pos);
+    const stopped = wheel.spinTo(pos);
+    L.fx.sound.spinStart(effectiveSoundSet(), wheel.lastSpinMs / 1000); // drum roll / own file, timed to the spin
+    await stopped;
 
     wheel.highlight = 0.01;
     document.body.classList.remove('is-spinning');
-    L.fx.sound.win(effectiveWinSound());
+    L.fx.sound.win(effectiveSoundSet());
     const wrap = $('wheel-wrap').getBoundingClientRect();
     if (cfg.confetti) L.fx.confetti.burst(wrap.left + wrap.width / 2, wrap.top + wrap.height / 2);
     await sleep(600);
 
-    const from = prefs.style === 'pie'
-      ? $('readout').getBoundingClientRect()
-      : { left: wrap.left, top: wrap.top + wrap.height / 2 - 30, width: wrap.width, height: 60 };
+    const from = { left: wrap.left, top: wrap.top + wrap.height / 2 - 30, width: wrap.width, height: 60 };
     await L.fx.flyText(data.names[nameIndex], from, $('winner-name'), cfg.flyAnimationMs);
 
     spinningPrizeId = null;
@@ -253,14 +259,6 @@
     else if (isLast()) btn.textContent = T.showSummary;
     else btn.textContent = T.next;
     btn.disabled = busy;
-
-    document.body.dataset.wheel = prefs.style;
-    updateReadout();
-  }
-
-  function updateReadout() {
-    const i = wheel.currentIndex();
-    $('readout').textContent = i >= 0 ? wheel.items[i] : '';
   }
 
   /* =====================================================================
@@ -341,13 +339,12 @@
       li.textContent = w;
       warn.appendChild(li);
     });
-    $('opt-style').value = prefs.style;
     $('opt-order').value = prefs.drawOrder;
     $('opt-sound').checked = prefs.sound;
     $('opt-list').checked = prefs.showList;
     $('opt-intro-only').checked = prefs.introOnly;
     $('btn-start-default').hidden = !customStart;
-    $('opt-win-sound').value = effectiveWinSound();
+    $('opt-sound-set').value = effectiveSoundSet();
     updateCustomSoundRow();
     $('order-hint').hidden = !(state && anyResults());
   }
@@ -408,7 +405,7 @@
     });
     $('theme-select').value = name;
     $('opt-theme').value = name;
-    if ($('opt-win-sound').options.length) { $('opt-win-sound').value = effectiveWinSound(); updateCustomSoundRow(); }
+    if ($('opt-sound-set').options.length) { $('opt-sound-set').value = effectiveSoundSet(); updateCustomSoundRow(); }
     if (data && state && wheel) render(); // the start screen image can differ per theme
     const href = window.lotteryThemeHref(name);
     const old = $('theme-css');
@@ -461,8 +458,6 @@
     document.title = T.title;
     $('btn-lang').innerHTML = langs
       .map((l) => `<span data-lang="${l}" class="${l === code ? 'active' : ''}" title="${window.LOTTERY_I18N[l].languageName || l}">${l.toUpperCase()}</span>`).join('');
-    $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${t('style_' + s)}</option>`).join('');
-    $('opt-style').value = prefs.style;
     buildSoundOptions();
     const current = document.documentElement.dataset.theme;
     const themeOptions = Object.keys(cfg.themes).map((k) => `<option value="${k}">${themeLabel(k)}</option>`).join('');
@@ -513,35 +508,52 @@
     applyLayoutPrefs();
   }
 
-  /* ---------- Start-screen image & winner sound chosen in Settings ---------- */
+  /* ---------- Start-screen image & draw sounds chosen in Settings ---------- */
   function setCustomStart(file) {
     if (customStart) URL.revokeObjectURL(customStart.url);
     customStart = file ? { url: URL.createObjectURL(file), name: file.name } : null;
     $('btn-start-default').hidden = !customStart;
     if (data && state && wheel) render();
   }
-  /** Winner sound: user's choice, else the theme's default, else config.winSound. */
-  function effectiveWinSound() {
+  /** Draw sound set: user's choice, else the theme's default, else config.soundSet. */
+  function effectiveSoundSet() {
     const th = cfg.themes[document.documentElement.dataset.theme] || {};
-    const name = prefs.winSound || th.winSound || cfg.winSound || 'fanfare';
-    return name === 'custom' || L.fx.winSounds.includes(name) ? name : 'fanfare';
+    const name = prefs.soundSet || th.soundSet || cfg.soundSet || 'classic';
+    return L.fx.soundSets.includes(name) ? name : 'classic';
   }
   function buildSoundOptions() {
-    const sel = $('opt-win-sound');
+    const sel = $('opt-sound-set');
     const opt = (k) => `<option value="${k}">${t('sound_' + k)}</option>`;
-    const all = L.fx.winSounds;
+    const all = L.fx.soundSets.filter((k) => k !== 'custom');
     sel.innerHTML = all.filter((k) => !k.startsWith('xmas_')).map(opt).join('')
       + `<optgroup label="${T.soundGroupXmas}">${all.filter((k) => k.startsWith('xmas_')).map(opt).join('')}</optgroup>`
       + '<option value="custom"></option>';
-    // the file name is user data -> textContent
-    sel.querySelector('option[value="custom"]').textContent = customSound ? T.customSoundName(customSound.name) : T.sound_custom;
-    sel.value = effectiveWinSound();
+    // file names are user data -> textContent
+    const names = [customSound.spin, customSound.win].filter(Boolean).map((f) => f.name).join(' + ');
+    sel.querySelector('option[value="custom"]').textContent = names ? T.customSoundName(names) : T.sound_custom;
+    sel.value = effectiveSoundSet();
     updateCustomSoundRow();
   }
   function updateCustomSoundRow() {
-    $('custom-sound-row').hidden = $('opt-win-sound').value !== 'custom';
+    $('custom-sound-row').hidden = $('opt-sound-set').value !== 'custom';
   }
-  const previewSound = () => L.fx.sound.win(effectiveWinSound(), true);
+  const previewSound = () => L.fx.sound.preview(effectiveSoundSet());
+  /** An own sound file was chosen for slot 'spin' (during the draw) or 'win' (after it). */
+  async function setOwnSound(slot, file) {
+    $('sound-error').textContent = '';
+    try {
+      await L.fx.sound.setCustom(slot, file);
+    } catch (err) {
+      $('sound-error').textContent = T.soundLoadError;
+      return;
+    }
+    try { await L.store.setFile(slot === 'spin' ? 'spinSound' : 'winSound', file); } catch (err) { /* still used for this visit */ }
+    customSound[slot] = file;
+    prefs.soundSet = 'custom';
+    L.store.savePrefs(prefs);
+    buildSoundOptions();
+    previewSound();
+  }
 
   function updateSoundBtn() {
     $('btn-sound').textContent = prefs.sound ? '🔊' : '🔇';
@@ -586,12 +598,6 @@
       const pick = e.target.closest('[data-lang]');
       if (pick) setLanguage(pick.dataset.lang); else nextLanguage();
     });
-    $('opt-style').addEventListener('change', (e) => {
-      prefs.style = e.target.value;
-      L.store.savePrefs(prefs);
-      wheel.setStyle(prefs.style);
-      if (data) render();
-    });
     $('opt-sound').addEventListener('change', (e) => {
       prefs.sound = e.target.checked;
       L.store.savePrefs(prefs);
@@ -608,30 +614,19 @@
       await L.store.clearFile('startImage');
       setCustomStart(null);
     });
-    $('opt-win-sound').addEventListener('change', (e) => {
-      prefs.winSound = e.target.value;
+    $('opt-sound-set').addEventListener('change', (e) => {
+      prefs.soundSet = e.target.value;
       L.store.savePrefs(prefs);
       $('sound-error').textContent = '';
       updateCustomSoundRow();
-      if (e.target.value !== 'custom' || customSound) previewSound();
+      if (e.target.value !== 'custom' || customSound.spin || customSound.win) previewSound();
     });
-    $('file-win-sound').addEventListener('change', async (e) => {
-      const f = e.target.files[0];
-      if (!f) return;
-      $('sound-error').textContent = '';
-      try {
-        await L.fx.sound.setCustom(f);
-      } catch (err) {
-        $('sound-error').textContent = T.soundLoadError;
-        return;
-      }
-      try { await L.store.setFile('winSound', f); } catch (err) { /* still used for this visit */ }
-      customSound = f;
-      prefs.winSound = 'custom';
-      L.store.savePrefs(prefs);
-      buildSoundOptions();
-      previewSound();
-      e.target.value = '';
+    [['file-spin-sound', 'spin'], ['file-win-sound', 'win']].forEach(([id, slot]) => {
+      $(id).addEventListener('change', async (e) => {
+        const f = e.target.files[0];
+        if (f) await setOwnSound(slot, f);
+        e.target.value = '';
+      });
     });
     $('btn-sound-preview').addEventListener('click', previewSound);
     $('opt-intro-only').addEventListener('change', (e) => {
@@ -691,21 +686,22 @@
     applyLayoutPrefs();
 
     L.fx.confetti.init($('confetti'));
-    wheel = new L.Wheel($('wheel'), Object.assign({}, cfg.wheel, { style: prefs.style }));
+    wheel = new L.Wheel($('wheel'), cfg.wheel);
     wheel.onIndexChange = (i, spinning) => {
-      if (spinning) L.fx.sound.tick();
-      updateReadout();
+      if (spinning) L.fx.sound.tick(effectiveSoundSet());
     };
     updateSoundBtn();
     bindEvents();
 
-    // own start image / winner sound chosen earlier in Settings (kept in IndexedDB)
-    const [startFile, soundFile] = await Promise.all([L.store.getFile('startImage'), L.store.getFile('winSound')]);
+    // own start image / sounds chosen earlier in Settings (kept in IndexedDB)
+    const [startFile, spinFile, winFile] = await Promise.all(
+      ['startImage', 'spinSound', 'winSound'].map((k) => L.store.getFile(k)));
     if (startFile) setCustomStart(startFile);
-    if (soundFile) {
-      customSound = soundFile;
-      L.fx.sound.setCustom(soundFile).catch(() => { customSound = null; });
-    }
+    [['spin', spinFile], ['win', winFile]].forEach(([slot, f]) => {
+      if (!f) return;
+      customSound[slot] = f;
+      L.fx.sound.setCustom(slot, f).catch(() => { customSound[slot] = null; });
+    });
     buildSoundOptions();
 
     try {

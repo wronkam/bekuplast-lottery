@@ -56,18 +56,7 @@
   --wheel-bg-2: #9a1529;
   --wheel-shade: rgba(60, 4, 12, 0.8);
   --wheel-radius: 8;
-  --wheel-rim: var(--xmas-red-dark);
-  --wheel-hub: var(--xmas-gold);
   --palette: #c8102e, #f2c14e, #1f7a4d, #9e0c24, #ffe08a, #0f4d33, #e86a5c, #c99a2e;
-  /* many names: bold red / gold / green sectors */
-  --wheel-many: blocks;
-  --wheel-blocks: 16;
-  --wheel-hue-start: 0;
-  --wheel-hue-span: 0;
-  --wheel-hue-mirror: 0;
-  --wheel-sat: 70%;
-  --wheel-light: 45%;
-  --wheel-light-alt: 40%;
 
   color-scheme: dark;
 }
@@ -180,8 +169,7 @@ body::after {
 .flying-name { box-shadow: 0 0 0 3px var(--xmas-red-dark), 0 0 0 5px var(--xmas-gold), 0 12px 40px rgba(0, 0, 0, 0.45); }
 
 /* wheel */
-body[data-wheel="drum"] .wheel-wrap { border: 2px solid var(--xmas-gold); border-radius: var(--radius); box-shadow: 0 14px 40px rgba(40, 0, 8, 0.5); }
-.readout { color: var(--xmas-gold-light); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45); }
+.wheel-wrap { border: 2px solid var(--xmas-gold); border-radius: var(--radius); box-shadow: 0 14px 40px rgba(40, 0, 8, 0.5); }
 
 /* results list */
 .results-list { gap: 0; }

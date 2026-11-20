@@ -6,7 +6,7 @@
  *   - start screen first (image only by default, switchable), then a full draw (two presses per prize) with unique winners, no JS errors
  *   - prize list hidden by default + Settings switch, hide/show top bar, every summary card bordered
  *   - the bundled brand font loads (bekuplast themes)
- *   - every winner sound renders real audio; own start image / own sound pickers work and persist
+ *   - every draw sound set renders real audio (spin + finish); own start image / own sound pickers work and persist
  *   - progress survives a reload, reset works
  *   - every theme in js/config.js loads its stylesheet and sets the CSS variables
  *   - every language has the same keys as English and switches the UI
@@ -110,25 +110,34 @@ function serve() {
   {
     const p = await newPage();
     await p.goto(base); await p.waitForTimeout(300);
-    // render every synthesised winner sound offline and check it is audible and does not clip
+    // render every sound set offline (spin + ticks, and the finish separately): audible, no clipping
     const stats = await p.evaluate(async () => {
       const out = {};
-      for (const name of window.Lottery.fx.winSounds) {
+      const render = async (fn) => {
         const sr = 22050, ctx = new OfflineAudioContext(1, sr * 4, sr);
         const s = window.Lottery.fx.sound, saved = [s.ctx, s.out, s.ensure, s.noiseBuf];
         s.ctx = ctx; s.out = ctx.destination; s.ensure = () => ctx; s.noiseBuf = null;
-        s.win(name, true);
+        fn(s);
         const d = (await ctx.startRendering()).getChannelData(0);
         [s.ctx, s.out, s.ensure, s.noiseBuf] = saved;
         let peak = 0; for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
-        out[name] = +peak.toFixed(2);
+        return +peak.toFixed(2);
+      };
+      for (const name of window.Lottery.fx.soundSets) {
+        const spin = await render((s) => {
+          s.spinStart(name, 2, true);
+          for (let at = 0.05, gap = 0.03; at < 2; at += gap, gap *= 1.1) s.tick(name, true, at);
+        });
+        const win = await render((s) => s.win(name, true));
+        out[name] = { spin, win };
       }
       return out;
     });
-    Object.entries(stats).forEach(([n, peak]) => ok(peak > 0.05 && peak < 1, `sound ${n}: peak ${peak}`));
-    const labels = await p.evaluate(() => window.Lottery.fx.winSounds.every((k) =>
+    Object.entries(stats).forEach(([n, r]) => ok(r.spin > 0.02 && r.spin < 1 && r.win > 0.05 && r.win < 1,
+      `sound set ${n}: during spin peak ${r.spin}, finish peak ${r.win}`));
+    const labels = await p.evaluate(() => window.Lottery.fx.soundSets.every((k) =>
       Object.keys(window.LOTTERY_I18N).every((l) => typeof window.LOTTERY_I18N[l]['sound_' + k] === 'string')));
-    ok(labels, 'every winner sound has a label in every language');
+    ok(labels, 'every sound set has a label in every language');
 
     // own start image (applied at once, kept after reload, default restorable)
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><rect width="40" height="30" fill="red"/></svg>';
@@ -136,20 +145,25 @@ function serve() {
     await p.setInputFiles('#file-start', { name: 'mine.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) });
     await p.waitForTimeout(200);
     ok((await p.getAttribute('#prize-image', 'src')).startsWith('blob:'), 'own start image shows at once');
-    // own winner sound: a 0.3 s WAV made here
+    // own sounds: a 0.3 s WAV made here, used for both slots
     const sr = 8000, n = sr * 0.3, wav = Buffer.alloc(44 + n * 2);
     wav.write('RIFF', 0); wav.writeUInt32LE(36 + n * 2, 4); wav.write('WAVEfmt ', 8); wav.writeUInt32LE(16, 16);
     wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(sr, 24); wav.writeUInt32LE(sr * 2, 28);
     wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(n * 2, 40);
     for (let i = 0; i < n; i++) wav.writeInt16LE(Math.round(8000 * Math.sin(2 * Math.PI * 440 * i / sr)), 44 + i * 2);
-    await p.selectOption('#opt-win-sound', 'custom');
+    await p.selectOption('#opt-sound-set', 'custom');
+    await p.setInputFiles('#file-spin-sound', { name: 'roll.wav', mimeType: 'audio/wav', buffer: wav });
+    await p.waitForTimeout(300);
     await p.setInputFiles('#file-win-sound', { name: 'ding.wav', mimeType: 'audio/wav', buffer: wav });
     await p.waitForTimeout(300);
     await p.click('#settings-form button[value=close]');
     await p.reload(); await p.waitForTimeout(500);
     const kept = await p.evaluate(() => [document.getElementById('prize-image').getAttribute('src').slice(0, 5),
-      document.getElementById('opt-win-sound').value, !!window.Lottery.fx.sound.customBuffer]);
-    ok(kept[0] === 'blob:' && kept[1] === 'custom' && kept[2], 'own start image and own sound kept after reload');
+      document.getElementById('opt-sound-set').value,
+      !!(window.Lottery.fx.sound.custom.spin && window.Lottery.fx.sound.custom.win),
+      document.querySelector('#opt-sound-set option[value="custom"]').textContent]);
+    ok(kept[0] === 'blob:' && kept[1] === 'custom' && kept[2] && /roll\.wav.*ding\.wav/.test(kept[3]),
+      `own start image and both own sounds kept after reload (${kept[3]})`);
     await p.click('#btn-settings'); await p.click('#btn-start-default'); await p.waitForTimeout(200);
     const startImg = await p.evaluate(() => window.LOTTERY_CONFIG.startImage);
     ok((await p.getAttribute('#prize-image', 'src')) === startImg, '"Use default image" restores the start image');

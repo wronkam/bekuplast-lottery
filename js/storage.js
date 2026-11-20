@@ -50,7 +50,7 @@
     async clearUpload() {
       try { await idb('readwrite', (s) => s.delete('upload')); } catch (e) { /* ignore */ }
     },
-    /* single uploaded files kept independently of the CSV upload: 'startImage', 'winSound' */
+    /* single uploaded files kept independently of the CSV upload: 'startImage', 'spinSound', 'winSound' */
     async getFile(key) {
       try { return (await idb('readonly', (s) => s.get('file:' + key))) || null; } catch (e) { return null; }
     },

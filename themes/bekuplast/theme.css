@@ -36,20 +36,9 @@
   /* wheel canvas */
   --wheel-bg: #e4e4e4;
   --wheel-bg-2: #ffffff;
-  --wheel-rim: #424242;
-  --wheel-hub: #424242;
   --wheel-shade: rgba(243, 243, 243, 0.9);
   --wheel-radius: 6;
   --palette: #78b146, #2f4f9e, #8a8a8a, #a63a32, #5f9233, #4a6fc4, #424242, #9cc977;
-  /* pie with many names: green -> blue -> green sweep */
-  --wheel-many: sweep;
-  --wheel-blocks: 12;
-  --wheel-hue-start: 95;
-  --wheel-hue-span: 130;
-  --wheel-hue-mirror: 1;
-  --wheel-sat: 42%;
-  --wheel-light: 52%;
-  --wheel-light-alt: 46%;
   color-scheme: light;
 }
 
@@ -87,8 +76,7 @@
 .winner-slot.has-winner .winner-name { color: var(--text); }
 
 /* wheel */
-body[data-wheel="drum"] .wheel-wrap { border: 1px solid var(--border); border-radius: var(--radius); }
-.readout { color: var(--text); }
+.wheel-wrap { border: 1px solid var(--border); border-radius: var(--radius); }
 
 /* results list: separators + green bar on the current prize */
 .results-list { gap: 0; }

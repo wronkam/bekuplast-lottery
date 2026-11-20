@@ -63,19 +63,7 @@
   --wheel-bg-2: #ffffff;            /* drum: centre */
   --wheel-shade: rgba(244, 246, 251, 0.9); /* drum: fade at top & bottom */
   --wheel-radius: 8;                /* drum corner radius (number, px) */
-  --wheel-rim: #1f2633;             /* pie: outer ring */
-  --wheel-hub: #1f2633;             /* pie: centre */
-  --palette: #3366cc, #f2a541, #2bb3a3, #8e5cd9, #e05d5d, #5aa9e6, #1f2633, #9fb7e8; /* slices (few names) & confetti */
-  /* pie with many names: 'sweep' = smooth hue sweep below, 'blocks' = --wheel-blocks sectors in --palette colours */
-  --wheel-many: sweep;
-  --wheel-blocks: 12;
-  /* hue sweep  hsl(start + span * t, sat, light/light-alt) */
-  --wheel-hue-start: 200;
-  --wheel-hue-span: 80;
-  --wheel-hue-mirror: 1;            /* 1 = go there and back (seamless), 0 = straight sweep */
-  --wheel-sat: 55%;
-  --wheel-light: 55%;
-  --wheel-light-alt: 49%;           /* every other slice, for texture */
+  --palette: #3366cc, #f2a541, #2bb3a3, #8e5cd9, #e05d5d, #5aa9e6, #1f2633, #9fb7e8; /* confetti colours */
 
   color-scheme: light;              /* light | dark – native form controls follow it */
 }
@@ -84,7 +72,7 @@
  * Useful hooks: .topbar .panel .prize-card .prize-image .tag .winner-slot(.has-winner)
  * .results-list li(.current/.done/.upcoming) .btn .btn-main .icon-btn .toolbar-select
  * .summary-card (all cards; .first = grand prize, use for extra glow only) .s-secondary .flying-name .dialog
- * body[data-wheel="drum"|"pie"]  body.intro (start screen)  body.hide-list  body.topbar-hidden  .topbar-reveal
+ * body.intro (start screen)  body.hide-list  body.topbar-hidden  .topbar-reveal
  * Tip: if you restyle .btn:hover, also set .btn-main:hover { background: var(--main-btn-bg-hover); }
  * (theme rules beat the base ones, so a generic .btn:hover would otherwise recolour the Spin button).
  */

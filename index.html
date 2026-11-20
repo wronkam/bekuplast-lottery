@@ -142,9 +142,32 @@
           </select>
         </label>
         <label class="row"><input type="checkbox" id="opt-list"> <span data-i18n="showPrizeList"></span></label>
-        <label class="row"><input type="checkbox" id="opt-intro-only"> <span data-i18n="introImageOnly"></span></label>
-        <label class="row"><input type="checkbox" id="opt-sound"> <span data-i18n="sound"></span></label>
         <p class="muted" id="order-hint" data-i18n="orderResetHint" hidden></p>
+      </fieldset>
+
+      <fieldset>
+        <legend data-i18n="startScreen"></legend>
+        <label><span data-i18n="startImageLabel"></span> <small data-i18n="startImageHint"></small>
+          <input type="file" id="file-start" accept="image/*">
+        </label>
+        <div class="dialog-actions left">
+          <button class="btn btn-ghost" type="button" id="btn-start-default" data-i18n="startImageDefault" hidden></button>
+        </div>
+        <label class="row"><input type="checkbox" id="opt-intro-only"> <span data-i18n="introImageOnly"></span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend data-i18n="sound"></legend>
+        <label class="row"><input type="checkbox" id="opt-sound"> <span data-i18n="soundEnabled"></span></label>
+        <div class="row sound-row">
+          <label class="row" for="opt-win-sound"><span data-i18n="winSound"></span></label>
+          <select id="opt-win-sound"></select>
+          <button class="btn btn-small" type="button" id="btn-sound-preview" data-i18n-title="previewTip">▶</button>
+        </div>
+        <label id="custom-sound-row" hidden><small data-i18n="customSoundHint"></small>
+          <input type="file" id="file-win-sound" accept="audio/*,.mp3,.wav,.ogg,.m4a">
+        </label>
+        <p class="error" id="sound-error"></p>
       </fieldset>
 
       <div class="dialog-actions">

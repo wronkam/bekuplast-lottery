@@ -24,6 +24,8 @@
   let spinningPrizeId = null;
   let busy = false;
   let loadFailure = null; // error from loading the data files (shown in the UI)
+  let customStart = null; // { url, name } – start-screen image chosen in Settings (IndexedDB 'file:startImage')
+  let customSound = null; // File – own winner sound chosen in Settings (IndexedDB 'file:winSound')
 
   /* =====================================================================
    * Data
@@ -96,6 +98,7 @@
   const currentPrize = () => (inIntro() ? null : data.byId[state.order[state.current]]);
   /** Start-screen image of the active theme (theme.startImage, else config.startImage). */
   function startImageUrl() {
+    if (customStart) return customStart.url; // own image from Settings wins
     const th = cfg.themes[document.documentElement.dataset.theme] || {};
     return ('startImage' in th ? th.startImage : cfg.startImage) || '';
   }
@@ -148,7 +151,7 @@
 
     wheel.highlight = 0.01;
     document.body.classList.remove('is-spinning');
-    L.fx.sound.fanfare();
+    L.fx.sound.win(effectiveWinSound());
     const wrap = $('wheel-wrap').getBoundingClientRect();
     if (cfg.confetti) L.fx.confetti.burst(wrap.left + wrap.width / 2, wrap.top + wrap.height / 2);
     await sleep(600);
@@ -343,6 +346,9 @@
     $('opt-sound').checked = prefs.sound;
     $('opt-list').checked = prefs.showList;
     $('opt-intro-only').checked = prefs.introOnly;
+    $('btn-start-default').hidden = !customStart;
+    $('opt-win-sound').value = effectiveWinSound();
+    updateCustomSoundRow();
     $('order-hint').hidden = !(state && anyResults());
   }
   function openSettings() {
@@ -402,6 +408,7 @@
     });
     $('theme-select').value = name;
     $('opt-theme').value = name;
+    if ($('opt-win-sound').options.length) { $('opt-win-sound').value = effectiveWinSound(); updateCustomSoundRow(); }
     if (data && state && wheel) render(); // the start screen image can differ per theme
     const href = window.lotteryThemeHref(name);
     const old = $('theme-css');
@@ -456,6 +463,7 @@
       .map((l) => `<span data-lang="${l}" class="${l === code ? 'active' : ''}" title="${window.LOTTERY_I18N[l].languageName || l}">${l.toUpperCase()}</span>`).join('');
     $('opt-style').innerHTML = L.wheelStyles.map((s) => `<option value="${s}">${t('style_' + s)}</option>`).join('');
     $('opt-style').value = prefs.style;
+    buildSoundOptions();
     const current = document.documentElement.dataset.theme;
     const themeOptions = Object.keys(cfg.themes).map((k) => `<option value="${k}">${themeLabel(k)}</option>`).join('');
     ['theme-select', 'opt-theme'].forEach((id) => { $(id).innerHTML = themeOptions; $(id).value = current; });
@@ -504,6 +512,36 @@
     L.store.savePrefs(prefs);
     applyLayoutPrefs();
   }
+
+  /* ---------- Start-screen image & winner sound chosen in Settings ---------- */
+  function setCustomStart(file) {
+    if (customStart) URL.revokeObjectURL(customStart.url);
+    customStart = file ? { url: URL.createObjectURL(file), name: file.name } : null;
+    $('btn-start-default').hidden = !customStart;
+    if (data && state && wheel) render();
+  }
+  /** Winner sound: user's choice, else the theme's default, else config.winSound. */
+  function effectiveWinSound() {
+    const th = cfg.themes[document.documentElement.dataset.theme] || {};
+    const name = prefs.winSound || th.winSound || cfg.winSound || 'fanfare';
+    return name === 'custom' || L.fx.winSounds.includes(name) ? name : 'fanfare';
+  }
+  function buildSoundOptions() {
+    const sel = $('opt-win-sound');
+    const opt = (k) => `<option value="${k}">${t('sound_' + k)}</option>`;
+    const all = L.fx.winSounds;
+    sel.innerHTML = all.filter((k) => !k.startsWith('xmas_')).map(opt).join('')
+      + `<optgroup label="${T.soundGroupXmas}">${all.filter((k) => k.startsWith('xmas_')).map(opt).join('')}</optgroup>`
+      + '<option value="custom"></option>';
+    // the file name is user data -> textContent
+    sel.querySelector('option[value="custom"]').textContent = customSound ? T.customSoundName(customSound.name) : T.sound_custom;
+    sel.value = effectiveWinSound();
+    updateCustomSoundRow();
+  }
+  function updateCustomSoundRow() {
+    $('custom-sound-row').hidden = $('opt-win-sound').value !== 'custom';
+  }
+  const previewSound = () => L.fx.sound.win(effectiveWinSound(), true);
 
   function updateSoundBtn() {
     $('btn-sound').textContent = prefs.sound ? '🔊' : '🔇';
@@ -559,6 +597,43 @@
       L.store.savePrefs(prefs);
       updateSoundBtn();
     });
+    $('file-start').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      try { await L.store.setFile('startImage', f); } catch (err) { /* still used for this visit */ }
+      setCustomStart(f);
+      e.target.value = '';
+    });
+    $('btn-start-default').addEventListener('click', async () => {
+      await L.store.clearFile('startImage');
+      setCustomStart(null);
+    });
+    $('opt-win-sound').addEventListener('change', (e) => {
+      prefs.winSound = e.target.value;
+      L.store.savePrefs(prefs);
+      $('sound-error').textContent = '';
+      updateCustomSoundRow();
+      if (e.target.value !== 'custom' || customSound) previewSound();
+    });
+    $('file-win-sound').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      $('sound-error').textContent = '';
+      try {
+        await L.fx.sound.setCustom(f);
+      } catch (err) {
+        $('sound-error').textContent = T.soundLoadError;
+        return;
+      }
+      try { await L.store.setFile('winSound', f); } catch (err) { /* still used for this visit */ }
+      customSound = f;
+      prefs.winSound = 'custom';
+      L.store.savePrefs(prefs);
+      buildSoundOptions();
+      previewSound();
+      e.target.value = '';
+    });
+    $('btn-sound-preview').addEventListener('click', previewSound);
     $('opt-intro-only').addEventListener('change', (e) => {
       prefs.introOnly = e.target.checked;
       L.store.savePrefs(prefs);
@@ -623,6 +698,15 @@
     };
     updateSoundBtn();
     bindEvents();
+
+    // own start image / winner sound chosen earlier in Settings (kept in IndexedDB)
+    const [startFile, soundFile] = await Promise.all([L.store.getFile('startImage'), L.store.getFile('winSound')]);
+    if (startFile) setCustomStart(startFile);
+    if (soundFile) {
+      customSound = soundFile;
+      L.fx.sound.setCustom(soundFile).catch(() => { customSound = null; });
+    }
+    buildSoundOptions();
 
     try {
       data = await loadData();

@@ -392,12 +392,16 @@ body[data-wheel="pie"] .readout { display: block; }
 .dialog p { line-height: 1.45; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 .dialog-actions.left { justify-content: flex-start; }
-.dialog fieldset { border: 1px solid var(--border); border-radius: var(--radius); margin: 14px 0; padding: 12px 16px; }
+.dialog fieldset { border: 1px solid var(--border); border-radius: var(--radius); margin: 14px 0; padding: 12px 16px; min-width: 0; }
 .dialog legend { color: var(--accent); font-weight: 700; padding: 0 6px; }
 .dialog label { display: block; margin: 10px 0; }
 .dialog label.row { display: flex; align-items: center; gap: 10px; }
+.dialog label[hidden] { display: none; }
+.dialog .sound-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.dialog .sound-row label.row { margin: 0; }
+.btn-small { padding: 0.25em 0.8em; }
 .dialog label input[type="file"] { display: block; margin-top: 4px; max-width: 100%; }
-.dialog select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
+.dialog select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; max-width: 100%; min-width: 0; }
 .dialog input[type="checkbox"] { accent-color: var(--accent); }
 .dialog small, .muted { color: var(--muted); }
 .dialog a { color: var(--accent-strong); }

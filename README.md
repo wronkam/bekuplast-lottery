@@ -22,7 +22,9 @@ The top bar also has a **Style** drop-down to switch the look (see [Themes](#the
 
 - **Hide the top bar** with the **▴** button (or <kbd>H</kbd>) for a cleaner projector view. A faint **▾** in the top-right corner brings it back.
 - **The prize list** (all prizes with their winners, on the right) is hidden by default. Turn it on under **⚙ → Options → Show prize list**.
-- **The start screen** shows only the start image and the **Start ➜** button by default. The name wheel appears with the first prize. To show the wheel on the start screen as well, turn off **⚙ → Options → Start screen: image only**.
+- **The start screen** shows only the start image and the **Start ➜** button by default. The name wheel appears with the first prize. To show the wheel on the start screen as well, turn off **⚙ → Start screen → Start screen: image only**.
+- **Your own start image:** choose it under **⚙ → Start screen → Start screen image**. It's used immediately, doesn't reset the draw, and is remembered in this browser. **Use default image** switches back.
+- **Winner sound:** pick the sound played when a name is drawn under **⚙ → Sound → Winner sound**. ▶ plays it. The choices are Fanfare, Ta-da!, Chime, Applause, and three Christmas sounds: Church bells, Sleigh bells and *Jingle Bells*. **Own file…** lets you choose any MP3, WAV or OGG file, which plays for at most 8 seconds. The Christmas theme uses *Jingle Bells* until you pick something else. All built-in sounds are generated in the browser, so they work offline.
 
 | Key | Action |
 | --- | --- |
@@ -52,6 +54,7 @@ Click **Load files**. The data is stored in this browser (IndexedDB) until you c
 - `data/names.csv`
 - `data/prizes.csv`
 - prize images in `images/prizes/`. Any web format works: `.jpg`, `.png`, `.svg`, `.webp`.
+- the start-screen image: replace `images/start.svg`, or point `startImage` in `js/config.js` at your file. The Christmas theme's image is `themes/bekuplast-christmas/start.svg`.
 
 ### CSV formats
 
@@ -112,13 +115,14 @@ Almost everything is in **`js/config.js`**:
 | `showPrizeList` | Show the prize list with winners by default (`false`; also a switch in Settings) |
 | `startScreenImageOnly` | On the start screen, show only the start image and hide the name wheel (`true`; also a switch in Settings) |
 | `language` | Default language (`'en'`, `'pl'` or `'de'`); see [Language](#language) |
-| `theme`, `themes` | Default theme and the list of themes; see [Themes](#themes) |
+| `theme`, `themes` | Default theme and the list of themes (each can set `logoUrl`, `startImage`, `winSound`); see [Themes](#themes) |
 | `drawOrder` | `'asc'` = first to last (prize #1 drawn first); `'desc'` = last to first (highest number first, grand prize #1 last). Also switchable in Settings at any time; changing it mid-lottery asks to confirm and resets. |
 | `spinOnNext` | `false` (default): after a winner, one press shows the next prize and another press spins. `true`: one press moves to the next prize and spins immediately. |
 | `autoSummaryDelayMs` | Show the summary automatically after the last draw (`null` = wait for the button) |
 | `wheel.style` | `'drum'` (vertical reel, readable with hundreds of names) or `'pie'` (classic wheel). Also switchable in Settings. |
 | `wheel.durationMs`, `durationJitterMs`, `easingPower` | Spin length and how long the suspenseful slow-down lasts |
 | `sound`, `confetti`, `flyAnimationMs` | Effects |
+| `winSound` | Default winner sound: `fanfare`, `tada`, `chime`, `applause`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells` or `custom`. A theme can set its own; the Christmas theme uses `xmas_jinglebells` |
 
 ### Language
 

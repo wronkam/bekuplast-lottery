@@ -50,5 +50,13 @@
     async clearUpload() {
       try { await idb('readwrite', (s) => s.delete('upload')); } catch (e) { /* ignore */ }
     },
+    /* single uploaded files kept independently of the CSV upload: 'startImage', 'winSound' */
+    async getFile(key) {
+      try { return (await idb('readonly', (s) => s.get('file:' + key))) || null; } catch (e) { return null; }
+    },
+    setFile: (key, file) => idb('readwrite', (s) => s.put(file, 'file:' + key)),
+    async clearFile(key) {
+      try { await idb('readwrite', (s) => s.delete('file:' + key)); } catch (e) { /* ignore */ }
+    },
   };
 })((window.Lottery = window.Lottery || {}));

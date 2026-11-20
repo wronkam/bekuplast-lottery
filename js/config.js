@@ -25,6 +25,7 @@ window.LOTTERY_CONFIG = {
    *   label   – name shown in the drop-down (a string, or { en: '…', pl: '…' } per language)
    *   logoUrl – optional logo for this theme (null/omitted = global logoUrl)
    *   startImage – optional start-screen image for this theme (omitted = global startImage)
+   *   winSound   – optional default winner sound for this theme (see `winSound` below)
    *   css     – optional custom stylesheet path (default: themes/<name>/theme.css)
    * Pick the default here, from the drop-down, or with ?theme=<name> in the URL. */
   theme: 'default',
@@ -35,6 +36,7 @@ window.LOTTERY_CONFIG = {
       label: { en: 'bekuplast Christmas', pl: 'bekuplast świąteczny', de: 'bekuplast Weihnachten' },
       logoUrl: 'themes/bekuplast/logo.png',
       startImage: 'themes/bekuplast-christmas/start.svg',
+      winSound: 'xmas_jinglebells',
     },
   },
 
@@ -74,6 +76,10 @@ window.LOTTERY_CONFIG = {
 
   /* ---------- Effects ---------- */
   sound: true,     // default; can be toggled in the UI
+  // Sound when a winner is drawn (Settings -> Sound): fanfare | tada | chime | applause |
+  // xmas_bells | xmas_sleigh | xmas_jinglebells | custom (own file uploaded in Settings).
+  // A theme can set its own default (the Christmas theme uses Jingle Bells).
+  winSound: 'fanfare',
   confetti: true,
   flyAnimationMs: 1100, // how long the winner's name takes to fly under the prize
 

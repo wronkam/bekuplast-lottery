@@ -112,6 +112,8 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 - **`render()`:** redraws the prize card, winner slot, prize list, pool info and button text. Call it after any state change.
 - **`openSummary(quiet)` / `closeSummary()` / `exportCsv()`:** the CSV export uses the i18n `csvHeader` and `csvFileName` and the `config.csv.exportDelimiter`, with a BOM.
 - **`confirmDialog(text, okLabel)`:** a promise that resolves to `true` or `false`. Use it for anything destructive (reset, new data, order change).
+- **Settings dialog layout:** four groups. *Load your own data* (CSV + prize images, applied with "Load files", resets the draw). *Options* (wheel style, draw order, prize list; plus Style when the top bar is compact). *Start screen* (`#file-start` own image applied at once, `#btn-start-default`, `#opt-intro-only`). *Sound* (`#opt-sound`, `#opt-win-sound` + `#btn-sound-preview`, `#file-win-sound` shown for "Own file…").
+- **`setCustomStart(file)`, `effectiveWinSound()`, `buildSoundOptions()`:** the own start image (`customStart`; `startImageUrl()` prefers it over the theme and config image) and the winner-sound drop-down, rebuilt on language change because its labels are translated. The own sound's file name goes in via `textContent`.
 - **`fillSettings()` / `openSettings()` / `loadFiles()` / `restoreDemo()`:** the settings dialog. Loading files validates by parsing, stores the files in IndexedDB, clears the saved progress, then reloads the page.
 - **`applyTheme(name)`:**
   - Sets `data-theme` and the logo (theme `logoUrl`, falling back to `config.logoUrl`).
@@ -133,8 +135,9 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 | Where | Key | Content |
 | --- | --- | --- |
 | localStorage | `<storageKey>:state` | lottery progress (above) |
-| localStorage | `<storageKey>:prefs` | `{ style, sound, drawOrder, lang, theme, showList, topbarHidden, introOnly }` |
+| localStorage | `<storageKey>:prefs` | `{ style, sound, winSound, drawOrder, lang, theme, showList, topbarHidden, introOnly }` |
 | IndexedDB db `<storageKey>`, store `kv` | `upload` | `{ namesText, prizesText, images: File[], warnings[] }` |
+| IndexedDB, same store | `file:startImage`, `file:winSound` | own start image / own winner sound from Settings (`L.store.getFile/setFile/clearFile`). They are independent of the CSV upload: choosing one doesn't reset the draw, and "Restore demo data" doesn't remove them. |
 | URL | `?theme=<name>&lang=<code>` | overrides prefs for this visit (removed from the URL when the user switches) |
 
 `storageKey` is set in `config.js` (`bekuplast-lottery`). Change it to run a separate lottery with no shared saved data.
@@ -179,7 +182,12 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 ## 6. Effects (`js/effects.js`)
 
 - **`L.fx.randomInt(n)`:** crypto, with no modulo bias. **`L.fx.shuffle`:** Fisher–Yates using `randomInt`.
-- **`L.fx.sound`:** WebAudio with no audio files. `tick()` is throttled to 35 ms and `fanfare()` plays on a win. Created on first user gesture.
+- **`L.fx.sound`:** WebAudio, synthesised, with no audio files. `tick()` is throttled to 35 ms. The AudioContext is created on first use, after a user gesture.
+  - **`win(name, force)`** plays a winner sound; `force` plays even when sounds are off (used by the Settings ▶ preview).
+  - **The sounds** live in `WIN_SOUNDS` (`fanfare`, `tada`, `chime`, `applause`, `xmas_bells`, `xmas_sleigh`, `xmas_jinglebells`). Helpers: `tone`, `bell` (inharmonic partials), `noise` (filtered noise burst) and `jingle` (one sleigh-bell shake). `L.fx.winSounds` lists the keys.
+  - **To add a sound:** add a function to `WIN_SOUNDS` and a label `sound_<key>` to every language. Keys starting with `xmas_` appear under the Christmas group in the drop-down. Keep the peak between about 0.1 and 0.4; the smoke test renders each sound offline and checks it's audible and doesn't clip.
+  - **`'custom'`** plays the user's file: `setCustom(blob)` decodes it with an OfflineAudioContext (no gesture needed), and playback is capped at `customMaxSec` (8 s) with a fade-out. If no file is loaded, it falls back to the fanfare.
+  - **Which sound plays** is decided by `effectiveWinSound()` in `app.js`: `prefs.winSound`, else the theme's `winSound`, else `config.winSound`.
 - **`L.fx.confetti`:** a full-screen canvas (`#confetti`, z-index 60). Colours come from the theme `--palette`.
 - **`L.fx.flyText(text, fromRect, toEl, ms)`:** a `.flying-name` element animated along an arc with the Web Animations API.
 - **`L.theme.read()`:** reads the `--palette`, `--text`, `--accent`, `--font` and `--wheel-*` variables, with safe fallbacks so a broken theme can't crash the canvas.
@@ -269,7 +277,7 @@ state = { key, order: [prizeId…], current: <index into order, or -1 = start sc
 ---
 
 ## 9. Configuration reference (`js/config.js`)
-`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `css`), `showPrizeList`, `startScreenImageOnly`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
+`logoUrl`, `startImage`, `language`, `theme`, `themes` (each with `label`, optional `logoUrl`, `startImage`, `winSound`, `css`), `showPrizeList`, `startScreenImageOnly`, `data.{namesUrl,prizesUrl}`, `drawOrder` (`asc`/`desc`), `spinOnNext` (default `false`), `autoSummaryDelayMs`, `wheel.{style,durationMs,durationJitterMs,easingPower,minTravelItems,pieLaps,drumVisibleItems,idleSpeed,windUpMs}`, `sound`, `winSound`, `confetti`, `flyAnimationMs`, `persist`, `storageKey`, `csv.{nameHeaderKeywords,prizeColumns,exportDelimiter}`. Each one is commented in the file. Prefer adding a config option over hard-coding behaviour.
 
 ---
 
@@ -285,6 +293,7 @@ node tests/smoke.js     # ~30 s; exit code 0 = pass
   - The prize list hidden by default and its Settings switch; hiding and showing the top bar.
   - Every summary card having the same border.
   - The brand font loading in the themes that use it.
+  - Every winner sound rendering real, non-clipping audio and having a label in every language; the own start image and own sound pickers, including persistence and "Use default image".
   - Persistence across a reload, the summary, and reset.
   - Every registered theme loads and defines its variables.
   - All languages have identical keys and switch the UI.
